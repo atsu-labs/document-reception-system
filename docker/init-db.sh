@@ -7,6 +7,12 @@ set -e
 
 echo "🔧 データベース初期化を開始します..."
 
+# DATABASE_PATH環境変数が設定されているか確認
+if [ -z "$DATABASE_PATH" ]; then
+    echo "❌ エラー: DATABASE_PATH環境変数が設定されていません"
+    exit 1
+fi
+
 # データベースファイルが存在しない場合は初期化
 if [ ! -f "$DATABASE_PATH" ]; then
     echo "📦 データベースが見つかりません。新規作成します..."
