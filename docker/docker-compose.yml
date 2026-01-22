@@ -14,7 +14,7 @@ services:
     environment:
       - NODE_ENV=development
       - DATABASE_PATH=/app/backend/data/local.db
-      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
+      - JWT_SECRET=${JWT_SECRET}
     command: pnpm --filter backend dev:local
     networks:
       - app-network

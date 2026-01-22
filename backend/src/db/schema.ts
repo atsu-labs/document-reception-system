@@ -19,7 +19,7 @@ export const departments = sqliteTable('departments', {
   id: text('id').primaryKey(),
   code: text('code').notNull().unique(),
   name: text('name').notNull(),
-  parentId: text('parent_id').references((): any => departments.id),
+  parentId: text('parent_id'),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
