@@ -174,13 +174,25 @@ pnpm --filter backend deploy
 # ビルド
 pnpm --filter backend build
 
-# データベースマイグレーション生成
+# データベースマイグレーション生成（スキーマ変更時）
 pnpm --filter backend db:generate
 
 # データベースマイグレーション実行
 pnpm --filter backend db:migrate
 
-# Drizzle Studio起動
+# Seedデータ投入
+pnpm --filter backend db:seed
+
+# データベース検証
+pnpm --filter backend db:verify
+
+# データベースセットアップ（migrate + seed + verify）
+pnpm --filter backend db:setup
+
+# データベースリセット（削除 + migrate + seed）
+pnpm --filter backend db:reset
+
+# Drizzle Studio起動（GUI管理ツール）
 pnpm --filter backend db:studio
 ```
 
@@ -222,6 +234,128 @@ pnpm build
 ### 開発環境（SQLite）
 
 ローカル開発では、SQLiteデータベース（`backend/local.db`）を使用します。
+
+#### 初回マイグレーション実行手順
+
+1. **マイグレーションファイルの生成**（スキーマ変更時のみ）
+
+   ```bash
+   cd backend
+   pnpm db:generate
+   ```
+
+2. **マイグレーションの実行**
+
+   ```bash
+   pnpm db:migrate
+   ```
+
+   データベースファイル `local.db` が作成され、テーブルが作成されます。
+
+3. **Seedデータの投入**
+
+   ```bash
+   pnpm db:seed
+   ```
+
+   以下のサンプルデータが投入されます：
+   - 4つの部署（総務部、人事部、経理部、営業部）
+   - 2つのワークフローテンプレート（標準、簡易）
+   - 3人のユーザー：
+     - `admin` / `admin123` - 管理者
+     - `senior` / `senior123` - 上級ユーザー
+     - `general` / `general123` - 一般ユーザー
+   - 3つの届出種別（休暇申請、経費精算、物品購入申請）
+   - 2件のサンプル届出データ
+   - 2件の履歴レコード
+
+4. **データベースの検証**
+
+   ```bash
+   pnpm db:verify
+   ```
+
+   データベースの内容を確認し、各種クエリが正常に動作することを検証します。
+
+#### データベースセットアップの一括実行
+
+上記の手順を一度に実行する場合：
+
+```bash
+cd backend
+pnpm db:setup
+```
+
+このコマンドは `db:migrate` → `db:seed` → `db:verify` を順に実行します。
+
+#### データベースのリセット
+
+データベースをリセットして最初からやり直す場合：
+
+```bash
+cd backend
+pnpm db:reset
+```
+
+このコマンドは既存の `local.db` を削除し、マイグレーションとシードを再実行します。
+
+#### 確認用の簡易クエリサンプル
+
+SQLiteコマンドラインで直接クエリを実行する場合：
+
+```bash
+# データベースに接続
+sqlite3 backend/local.db
+
+# テーブル一覧を表示
+.tables
+
+# 全部署を表示
+SELECT * FROM departments;
+
+# ユーザー一覧（部署情報付き）
+SELECT u.username, u.display_name, u.role, d.name as department
+FROM users u
+LEFT JOIN departments d ON u.department_id = d.id;
+
+# 届出一覧（種別と部署情報付き）
+SELECT n.notification_date, nt.name as type, n.property_name, n.current_status
+FROM notifications n
+JOIN notification_types nt ON n.notification_type_id = nt.id;
+
+# 終了
+.quit
+```
+
+#### Docker経由での初回マイグレーション実行
+
+Dockerコンテナ内でマイグレーションを実行する場合：
+
+```bash
+# Dockerコンテナの起動
+cd docker
+docker-compose up -d
+
+# コンテナ内でマイグレーションを実行
+docker-compose exec backend pnpm db:setup
+
+# ログで確認
+docker-compose logs backend
+
+# データベースファイルの確認（永続化ボリューム内）
+docker-compose exec backend ls -la /app/backend/data/
+```
+
+#### Drizzle Studioでの確認
+
+Drizzle Studioを使用してGUIでデータベースを確認できます：
+
+```bash
+cd backend
+pnpm db:studio
+```
+
+ブラウザで https://local.drizzle.studio を開いて確認してください。
 
 ### 本番環境（Cloudflare D1）
 

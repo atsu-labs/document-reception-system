@@ -8,9 +8,14 @@
     "dev:local": "wrangler dev --local",
     "deploy": "wrangler deploy",
     "build": "tsc",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:generate": "drizzle-kit generate:sqlite",
+    "db:push": "drizzle-kit push:sqlite",
+    "db:studio": "drizzle-kit studio",
+    "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js",
+    "db:verify": "node scripts/verify.js",
+    "db:reset": "rm -f local.db && pnpm db:migrate && pnpm db:seed",
+    "db:setup": "pnpm db:migrate && pnpm db:seed && pnpm db:verify"
   },
   "dependencies": {
     "hono": "^4.6.14",
