@@ -8,22 +8,28 @@
     "dev:local": "wrangler dev --local",
     "deploy": "wrangler deploy",
     "build": "tsc",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:generate": "drizzle-kit generate:sqlite",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:push": "drizzle-kit push:sqlite",
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx src/db/seed.ts",
+    "db:setup": "pnpm db:migrate && pnpm db:seed"
   },
   "dependencies": {
     "hono": "^4.6.14",
     "drizzle-orm": "^0.30.10",
     "zod": "^3.24.1",
     "@hono/zod-validator": "^0.4.1",
-    "bcryptjs": "^2.4.3"
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.8.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241231.0",
     "drizzle-kit": "^0.20.18",
     "typescript": "^5.7.3",
     "wrangler": "^3.102.0",
-    "@types/bcryptjs": "^2.4.6"
+    "@types/bcryptjs": "^2.4.6",
+    "@types/better-sqlite3": "^7.6.12",
+    "tsx": "^4.19.2"
   }
 }

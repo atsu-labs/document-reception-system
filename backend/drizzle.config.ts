@@ -4,5 +4,8 @@ export default {
   schema: './src/db/schema.ts',
   out: './drizzle/migrations',
   dialect: 'sqlite',
-  driver: 'd1-http',
+  driver: 'better-sqlite',
+  dbCredentials: {
+    url: './data/local.db',
+  },
 } satisfies Config;
