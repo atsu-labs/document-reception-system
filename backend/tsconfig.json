@@ -7,8 +7,6 @@
     "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": false,
-    "jsx": "react",
-    "jsxImportSource": "hono/jsx",
     "noEmit": true,
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
