@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    ports:
+      - "8787:8787"
+    volumes:
+      - ../backend:/app/backend
+      - /app/backend/node_modules
+      - backend-db:/app/backend/data
+    environment:
+      - NODE_ENV=development
+      - DATABASE_PATH=/app/backend/data/local.db
+      - JWT_SECRET=${JWT_SECRET}
+    command: pnpm --filter backend dev:local
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../frontend:/app/frontend
+      - /app/frontend/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8787/api
+    command: pnpm --filter frontend dev
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+volumes:
+  backend-db:
+
+networks:
+  app-network:
+    driver: bridge

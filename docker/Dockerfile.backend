@@ -1,0 +1,25 @@
+FROM node:20-alpine
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Set working directory
+WORKDIR /app
+
+# Copy workspace configuration
+COPY package.json pnpm-workspace.yaml ./
+
+# Copy backend package files
+COPY backend/package.json ./backend/
+
+# Install dependencies
+RUN pnpm install
+
+# Copy backend source
+COPY backend ./backend
+
+# Expose port
+EXPOSE 8787
+
+# Default command
+CMD ["pnpm", "--filter", "backend", "dev:local"]

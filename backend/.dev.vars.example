@@ -1,0 +1,5 @@
+# JWT secret for development (CHANGE IN PRODUCTION!)
+JWT_SECRET=your-secret-key-change-in-production
+
+# Database path (for local SQLite development)
+DATABASE_PATH=./local.db
