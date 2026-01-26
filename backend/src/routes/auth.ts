@@ -2,12 +2,13 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
-import { getDB } from '../db/client';
+import { getDB, Env } from '../db/client';
 import { users } from '../db/schema';
 import { generateToken } from '../utils/jwt';
 import { comparePassword, hashPassword } from '../utils/password';
 import { successResponse, errorResponse } from '../utils/response';
 import { authMiddleware, getAuthUser } from '../middleware/auth';
+import { getCurrentTimestamp } from '../utils/timestamp';
 
 const auth = new Hono();
 
@@ -29,7 +30,7 @@ const passwordChangeSchema = z.object({
  */
 auth.post('/login', zValidator('json', loginSchema), async (c) => {
   const { username, password } = c.req.valid('json');
-  const db = getDB(c.env);
+  const db = getDB(c.env as Env);
 
   try {
     // Find user by username
@@ -64,11 +65,14 @@ auth.post('/login', zValidator('json', loginSchema), async (c) => {
     }
 
     // Generate JWT token
-    const token = await generateToken({
-      userId: user.id,
-      username: user.username,
-      role: user.role,
-    });
+    const token = await generateToken(
+      {
+        userId: user.id,
+        username: user.username,
+        role: user.role,
+      },
+      c.env
+    );
 
     return c.json(
       successResponse({
@@ -111,7 +115,7 @@ auth.post('/logout', authMiddleware, async (c) => {
  */
 auth.get('/me', authMiddleware, async (c) => {
   const authUser = getAuthUser(c);
-  const db = getDB(c.env);
+  const db = getDB(c.env as Env);
 
   try {
     // Fetch full user details from database
@@ -153,7 +157,7 @@ auth.get('/me', authMiddleware, async (c) => {
 auth.put('/password', authMiddleware, zValidator('json', passwordChangeSchema), async (c) => {
   const authUser = getAuthUser(c);
   const { currentPassword, newPassword } = c.req.valid('json');
-  const db = getDB(c.env);
+  const db = getDB(c.env as Env);
 
   try {
     // Get current user
@@ -187,7 +191,7 @@ auth.put('/password', authMiddleware, zValidator('json', passwordChangeSchema), 
       .update(users)
       .set({
         passwordHash: newPasswordHash,
-        updatedAt: new Date().toISOString(),
+        updatedAt: getCurrentTimestamp(),
       })
       .where(eq(users.id, authUser.userId));
 

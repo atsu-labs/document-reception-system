@@ -21,14 +21,15 @@ export async function authMiddleware(c: Context, next: Next) {
   const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
   try {
-    const payload = await verifyToken(token);
+    const payload = await verifyToken(token, c.env);
     
     // Attach user info to context
     c.set('user', payload);
     
     await next();
   } catch (error) {
-    return c.json(errorResponse('UNAUTHORIZED', 'Invalid or expired token'), 401);
+    const message = error instanceof Error ? error.message : 'Invalid or expired token';
+    return c.json(errorResponse('UNAUTHORIZED', message), 401);
   }
 }
 
