@@ -866,6 +866,8 @@ wrangler whoami  # ログイン確認
 - **プロジェクト内部**:
   - [システム仕様書](./system_specification.md) - 詳細な技術仕様
   - [Docker README](./docker/README.md) - Docker環境の詳細ガイド
+  - [コントリビューションガイド](./CONTRIBUTING.md) - 開発参加方法
+  - [クイックリファレンス](./QUICK_REFERENCE.md) - よく使うコマンド集
 
 - **公式ドキュメント**:
   - [Hono Documentation](https://hono.dev/) - バックエンドフレームワーク
