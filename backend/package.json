@@ -13,7 +13,9 @@
     "db:push": "drizzle-kit push:sqlite",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts",
-    "db:setup": "pnpm db:migrate && pnpm db:seed"
+    "db:verify": "tsx src/db/verify.ts",
+    "db:reset": "rm -rf data && pnpm db:migrate && pnpm db:seed",
+    "db:setup": "pnpm db:migrate && pnpm db:seed && pnpm db:verify"
   },
   "dependencies": {
     "hono": "^4.6.14",
