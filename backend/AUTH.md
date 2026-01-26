@@ -1,34 +1,34 @@
-# Authentication & Authorization System
+# 認証・認可システム
 
-This document describes the JWT-based authentication and authorization system implemented for the Document Reception System backend.
+このドキュメントは、届出管理システムバックエンドに実装されたJWTベースの認証・認可システムについて説明します。
 
-## Overview
+## 概要
 
-The system uses JSON Web Tokens (JWT) for stateless authentication with the following features:
+本システムはJSON Web Token (JWT)を使用したステートレス認証を提供し、以下の機能を備えています：
 
-- **Token-based authentication** using JWT with 8-hour expiration
-- **Role-based access control** (RBAC) with three roles: GENERAL, SENIOR, ADMIN
-- **Password hashing** using bcrypt
-- **Environment-based configuration** for JWT secrets
+- **トークンベース認証** - 8時間有効期限のJWT
+- **ロールベースアクセス制御** (RBAC) - GENERAL、SENIOR、ADMINの3つのロール
+- **パスワードハッシュ化** - bcryptを使用
+- **環境ベース設定** - JWT秘密鍵の環境変数管理
 
-## User Roles
+## ユーザーロール
 
-The system implements a hierarchical role system:
+本システムは階層型のロールシステムを実装しています：
 
-| Role | Level | Description |
+| ロール | レベル | 説明 |
 |------|-------|-------------|
-| GENERAL | 1 | Basic user - can access protected endpoints |
-| SENIOR | 2 | Senior user - has GENERAL permissions + additional privileges |
-| ADMIN | 3 | Administrator - has all permissions including SENIOR |
+| GENERAL | 1 | 一般ユーザー - 保護されたエンドポイントへのアクセス可能 |
+| SENIOR | 2 | 上位ユーザー - GENERALの権限に加えて追加の権限を持つ |
+| ADMIN | 3 | 管理者 - SENIORを含むすべての権限を持つ |
 
-## API Endpoints
+## APIエンドポイント
 
-### Authentication Endpoints
+### 認証エンドポイント
 
 #### POST /api/auth/login
-Authenticate user and receive JWT token.
+ユーザー認証を行い、JWTトークンを取得します。
 
-**Request:**
+**リクエスト:**
 ```json
 {
   "username": "admin",
@@ -36,7 +36,7 @@ Authenticate user and receive JWT token.
 }
 ```
 
-**Response (Success):**
+**レスポンス (成功時):**
 ```json
 {
   "success": true,
@@ -45,7 +45,7 @@ Authenticate user and receive JWT token.
     "user": {
       "id": "uuid",
       "username": "admin",
-      "displayName": "Admin User",
+      "displayName": "管理者ユーザー",
       "role": "ADMIN",
       "departmentId": "uuid"
     }
@@ -53,7 +53,7 @@ Authenticate user and receive JWT token.
 }
 ```
 
-**Response (Error):**
+**レスポンス (エラー時):**
 ```json
 {
   "success": false,
@@ -65,14 +65,14 @@ Authenticate user and receive JWT token.
 ```
 
 #### POST /api/auth/logout
-Logout current user (token should be discarded client-side).
+現在のユーザーをログアウトします（トークンはクライアント側で破棄されます）。
 
-**Headers:**
+**ヘッダー:**
 ```
 Authorization: Bearer <token>
 ```
 
-**Response:**
+**レスポンス:**
 ```json
 {
   "success": true,
@@ -83,21 +83,21 @@ Authorization: Bearer <token>
 ```
 
 #### GET /api/auth/me
-Get current authenticated user information.
+現在の認証済みユーザーの情報を取得します。
 
-**Headers:**
+**ヘッダー:**
 ```
 Authorization: Bearer <token>
 ```
 
-**Response:**
+**レスポンス:**
 ```json
 {
   "success": true,
   "data": {
     "id": "uuid",
     "username": "admin",
-    "displayName": "Admin User",
+    "displayName": "管理者ユーザー",
     "role": "ADMIN",
     "departmentId": "uuid",
     "isActive": true,
@@ -107,14 +107,14 @@ Authorization: Bearer <token>
 ```
 
 #### PUT /api/auth/password
-Change current user's password.
+現在のユーザーのパスワードを変更します。
 
-**Headers:**
+**ヘッダー:**
 ```
 Authorization: Bearer <token>
 ```
 
-**Request:**
+**リクエスト:**
 ```json
 {
   "currentPassword": "oldpassword",
@@ -122,7 +122,7 @@ Authorization: Bearer <token>
 }
 ```
 
-**Response:**
+**レスポンス:**
 ```json
 {
   "success": true,
@@ -132,154 +132,154 @@ Authorization: Bearer <token>
 }
 ```
 
-## Middleware
+## ミドルウェア
 
-### Authentication Middleware
+### 認証ミドルウェア
 
-The `authMiddleware` verifies JWT tokens and attaches user information to the request context.
+`authMiddleware` はJWTトークンを検証し、リクエストコンテキストにユーザー情報を付与します。
 
-**Usage:**
+**使用方法:**
 ```typescript
 import { authMiddleware } from '../middleware/auth';
 
-// Protect a route
+// ルートを保護
 app.get('/protected', authMiddleware, async (c) => {
   const user = getAuthUser(c);
-  // ... route logic
+  // ... ルートロジック
 });
 ```
 
-### Permission Middleware
+### 権限ミドルウェア
 
-The permission middleware enforces role-based access control.
+権限ミドルウェアはロールベースアクセス制御を実施します。
 
-**Available Middleware:**
-- `requireSenior` - Requires SENIOR or ADMIN role
-- `requireAdmin` - Requires ADMIN role
-- `requireRole(role)` - Custom role requirement
+**利用可能なミドルウェア:**
+- `requireSenior` - SENIORまたはADMINロールが必要
+- `requireAdmin` - ADMINロールが必要
+- `requireRole(role)` - カスタムロール要件
 
-**Usage:**
+**使用方法:**
 ```typescript
 import { authMiddleware } from '../middleware/auth';
 import { requireAdmin, requireSenior } from '../middleware/permission';
 
-// Admin-only endpoint
+// 管理者専用エンドポイント
 app.get('/admin-only', authMiddleware, requireAdmin, async (c) => {
-  // Only ADMIN users can access this
+  // ADMINユーザーのみアクセス可能
 });
 
-// Senior or Admin endpoint
+// 上位ユーザーまたは管理者用エンドポイント
 app.get('/senior-or-admin', authMiddleware, requireSenior, async (c) => {
-  // SENIOR and ADMIN users can access this
+  // SENIORおよびADMINユーザーがアクセス可能
 });
 ```
 
-## JWT Configuration
+## JWT設定
 
-JWT tokens are configured with the following settings:
+JWTトークンは以下の設定で構成されています：
 
-- **Algorithm**: HS256 (HMAC with SHA-256)
-- **Expiration**: 8 hours (28,800 seconds)
-- **Secret**: Configured via `JWT_SECRET` environment variable
+- **アルゴリズム**: HS256 (HMAC with SHA-256)
+- **有効期限**: 8時間 (28,800秒)
+- **シークレット**: `JWT_SECRET` 環境変数で設定
 
-### Environment Variables
+### 環境変数
 
-Create a `.dev.vars` file in the `backend` directory:
+`backend` ディレクトリに `.dev.vars` ファイルを作成してください：
 
 ```bash
-# JWT secret (CHANGE IN PRODUCTION!)
+# JWT シークレット（本番環境では変更必須！）
 JWT_SECRET=your-secure-secret-key-here
 
-# Database path
+# データベースパス
 DATABASE_PATH=./data/local.db
 ```
 
-**⚠️ IMPORTANT:** Never commit the `.dev.vars` file or production secrets to version control!
+**⚠️ 重要:** `.dev.vars` ファイルや本番環境のシークレットをバージョン管理にコミットしないでください！
 
-## Password Security
+## パスワードセキュリティ
 
-- Passwords are hashed using **bcrypt** with 10 salt rounds
-- Never store or log plain-text passwords
-- Minimum password length: 6 characters (configurable in validation)
+- パスワードは **bcrypt** を使用して10ソルトラウンドでハッシュ化されます
+- 平文パスワードの保存やログ出力は決して行わないでください
+- 最小パスワード長: 6文字（検証で設定可能）
 
-## Error Codes
+## エラーコード
 
-| Code | HTTP Status | Description |
+| コード | HTTPステータス | 説明 |
 |------|-------------|-------------|
-| UNAUTHORIZED | 401 | Missing or invalid authentication |
-| INVALID_CREDENTIALS | 401 | Wrong username or password |
-| ACCOUNT_DISABLED | 403 | User account is disabled |
-| FORBIDDEN | 403 | Insufficient permissions |
-| USER_NOT_FOUND | 404 | User does not exist |
-| INVALID_PASSWORD | 400 | Current password is incorrect |
-| INTERNAL_ERROR | 500 | Server error |
+| UNAUTHORIZED | 401 | 認証情報の欠落または無効 |
+| INVALID_CREDENTIALS | 401 | ユーザー名またはパスワードが間違っています |
+| ACCOUNT_DISABLED | 403 | ユーザーアカウントが無効化されています |
+| FORBIDDEN | 403 | 権限が不足しています |
+| USER_NOT_FOUND | 404 | ユーザーが存在しません |
+| INVALID_PASSWORD | 400 | 現在のパスワードが正しくありません |
+| INTERNAL_ERROR | 500 | サーバーエラー |
 
-## Development
+## 開発
 
-### Running the Server
+### サーバーの起動
 
 ```bash
 cd backend
 
-# Install dependencies
+# 依存関係のインストール
 npm install
 
-# Setup database
+# データベースのセットアップ
 npm run db:migrate
 npm run db:seed
 
-# Start development server
+# 開発サーバーの起動
 JWT_SECRET=dev-secret-key npm run dev
 ```
 
-The server will run on `http://localhost:8787`
+サーバーは `http://localhost:8787` で起動します
 
-### Default Test Users
+### デフォルトテストユーザー
 
-After running `npm run db:seed`, the following test users are available:
+`npm run db:seed` を実行後、以下のテストユーザーが利用可能です：
 
-| Username | Password | Role | Department |
+| ユーザー名 | パスワード | ロール | 所属 |
 |----------|----------|------|------------|
 | admin | password123 | ADMIN | 管理部 |
 | senior1 | password123 | SENIOR | 工務部 |
 | user1 | password123 | GENERAL | 総務部 |
 
-### Testing Authentication
+### 認証のテスト
 
 ```bash
-# Login
+# ログイン
 curl -X POST http://localhost:8787/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "password123"}'
 
-# Get user info (replace TOKEN with actual token from login)
+# ユーザー情報の取得（TOKENはログインで取得したトークンに置き換えてください）
 curl http://localhost:8787/api/auth/me \
   -H "Authorization: Bearer TOKEN"
 
-# Change password
+# パスワード変更
 curl -X PUT http://localhost:8787/api/auth/password \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"currentPassword": "password123", "newPassword": "newpassword"}'
 ```
 
-## Security Best Practices
+## セキュリティベストプラクティス
 
-1. **Always use HTTPS** in production to protect tokens in transit
-2. **Store tokens securely** on the client (e.g., httpOnly cookies or secure storage)
-3. **Rotate JWT secrets** periodically
-4. **Use strong passwords** - enforce password complexity requirements
-5. **Implement rate limiting** on authentication endpoints to prevent brute force attacks
-6. **Log security events** (login attempts, password changes, etc.)
-7. **Validate and sanitize** all user inputs
+1. **本番環境では必ずHTTPSを使用** - トークンを転送中に保護するため
+2. **トークンを安全に保存** - クライアント側（httpOnly Cookie または安全なストレージ）
+3. **JWT秘密鍵を定期的にローテーション**
+4. **強力なパスワードを使用** - パスワード複雑性要件を実施
+5. **レート制限の実装** - 認証エンドポイントでブルートフォース攻撃を防止
+6. **セキュリティイベントのログ記録** （ログイン試行、パスワード変更など）
+7. **すべてのユーザー入力を検証とサニタイズ**
 
-## Production Deployment
+## 本番環境へのデプロイ
 
 ### Cloudflare Workers
 
-When deploying to Cloudflare Workers:
+Cloudflare Workersにデプロイする場合：
 
-1. Set the JWT_SECRET in wrangler.toml (encrypted):
+1. wrangler.tomlでJWT_SECRETを設定（暗号化）：
 ```toml
 [env.production]
 vars = { NODE_ENV = "production" }
@@ -288,7 +288,7 @@ vars = { NODE_ENV = "production" }
 JWT_SECRET = "your-production-secret-key"
 ```
 
-2. Use Cloudflare D1 for the database:
+2. データベースにCloudflare D1を使用：
 ```toml
 [[d1_databases]]
 binding = "DB"
@@ -296,44 +296,44 @@ database_name = "document-reception-system"
 database_id = "your-database-id"
 ```
 
-3. Deploy:
+3. デプロイ：
 ```bash
 npm run deploy
 ```
 
-## Token Expiration Handling
+## トークン有効期限の処理
 
-Tokens expire after 8 hours. The client should:
+トークンは8時間後に期限切れになります。クライアントは以下を行う必要があります：
 
-1. Store the token and its expiration time
-2. Check expiration before making requests
-3. Handle 401 errors by redirecting to login
-4. Optionally implement token refresh logic
+1. トークンとその有効期限を保存
+2. リクエスト前に有効期限をチェック
+3. 401エラーをハンドリングしてログインにリダイレクト
+4. オプションでトークンリフレッシュロジックを実装
 
-## Future Enhancements
+## 今後の拡張機能
 
-- [ ] Token refresh mechanism
-- [ ] Token revocation/blacklist
-- [ ] Multi-factor authentication (MFA)
-- [ ] Password reset via email
-- [ ] Session management
-- [ ] Audit logging for security events
-- [ ] Rate limiting on authentication endpoints
+- [ ] トークンリフレッシュメカニズム
+- [ ] トークン取り消し/ブラックリスト
+- [ ] 多要素認証 (MFA)
+- [ ] メールによるパスワードリセット
+- [ ] セッション管理
+- [ ] セキュリティイベントの監査ログ
+- [ ] 認証エンドポイントのレート制限
 
-## Files Structure
+## ファイル構成
 
 ```
 backend/src/
 ├── middleware/
-│   ├── auth.ts          # JWT authentication middleware
-│   └── permission.ts    # Role-based access control middleware
+│   ├── auth.ts          # JWT認証ミドルウェア
+│   └── permission.ts    # ロールベースアクセス制御ミドルウェア
 ├── routes/
-│   ├── auth.ts          # Authentication endpoints
-│   └── test.ts          # Test routes for development
+│   ├── auth.ts          # 認証エンドポイント
+│   └── test.ts          # 開発用テストルート
 ├── utils/
-│   ├── jwt.ts           # JWT utilities (sign, verify)
-│   └── password.ts      # Password hashing utilities
+│   ├── jwt.ts           # JWTユーティリティ（署名、検証）
+│   └── password.ts      # パスワードハッシュ化ユーティリティ
 └── db/
-    ├── schema.ts        # Database schema including users table
-    └── seed.ts          # Seed data with test users
+    ├── schema.ts        # usersテーブルを含むデータベーススキーマ
+    └── seed.ts          # テストユーザーのシードデータ
 ```
