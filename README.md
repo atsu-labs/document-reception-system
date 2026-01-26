@@ -233,7 +233,69 @@ pnpm build
 
 ### 開発環境（SQLite）
 
-ローカル開発では、SQLiteデータベース（`backend/local.db`）を使用します。
+ローカル開発では、SQLiteデータベース（`backend/data/local.db`）を使用します。
+
+#### データベースのセットアップ
+
+初回のデータベース作成とシードデータの投入:
+
+```bash
+cd backend
+
+# マイグレーションとシードを一括実行
+pnpm db:setup
+
+# または個別に実行
+pnpm db:migrate  # マイグレーションのみ
+pnpm db:seed     # シードデータのみ
+```
+
+#### 初期ユーザー情報
+
+シード処理により以下のテストユーザーが作成されます:
+
+- **管理者**: `username=admin`, `password=password123`
+- **上位ユーザー**: `username=senior1`, `password=password123`
+- **一般ユーザー**: `username=user1`, `password=password123`
+
+#### データベース管理コマンド
+
+```bash
+# マイグレーションファイルの生成
+pnpm --filter backend db:generate
+
+# マイグレーションの実行
+pnpm --filter backend db:migrate
+
+# シードデータの投入
+pnpm --filter backend db:seed
+
+# Drizzle Studio（GUI）の起動
+pnpm --filter backend db:studio
+```
+
+### Docker環境
+
+Docker Compose経由で起動する場合、データベースは自動的に初期化されます:
+
+```bash
+cd docker
+docker-compose up -d
+```
+
+初回起動時に以下が自動実行されます:
+1. マイグレーションの適用
+2. シードデータの投入
+
+データベースファイルは名前付きボリューム `backend-db` に永続化されます。
+
+#### データベースのリセット（Docker）
+
+```bash
+# ボリュームを削除して再作成
+docker-compose down -v
+docker-compose up -d
+```
 
 #### 初回マイグレーション実行手順
 
@@ -361,6 +423,21 @@ pnpm db:studio
 
 本番環境では、Cloudflare D1データベースを使用します。
 `backend/wrangler.toml` でD1バインディングを設定してください。
+
+#### D1データベースの作成とマイグレーション
+
+```bash
+cd backend
+
+# D1データベースの作成
+wrangler d1 create document-reception-db
+
+# wrangler.tomlに出力されたデータベースIDを設定
+
+# マイグレーションファイルの適用
+wrangler d1 migrations apply document-reception-db --local  # ローカルテスト
+wrangler d1 migrations apply document-reception-db          # 本番適用
+```
 
 ## ライセンス
 

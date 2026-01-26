@@ -1,8 +1,7 @@
 FROM node:20-alpine
 
-# Install pnpm and sqlite3
-RUN npm install -g pnpm && \
-    apk add --no-cache sqlite
+# Install pnpm
+RUN npm install -g pnpm
 
 # Set working directory
 WORKDIR /app
@@ -19,12 +18,15 @@ RUN pnpm install
 # Copy backend source
 COPY backend ./backend
 
-# Copy initialization script
-COPY docker/init-backend.sh /init-backend.sh
-RUN chmod +x /init-backend.sh
+# Copy docker init script
+COPY docker/init-db.sh /usr/local/bin/init-db.sh
+RUN chmod +x /usr/local/bin/init-db.sh
 
 # Expose port
 EXPOSE 8787
 
+# Use init script as entrypoint
+ENTRYPOINT ["/usr/local/bin/init-db.sh"]
+
 # Default command
-CMD ["/init-backend.sh"]
+CMD ["pnpm", "--filter", "backend", "dev:local"]
