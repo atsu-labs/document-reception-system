@@ -54,28 +54,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       } else {
         throw new Error(response.error?.message || 'Login failed');
       }
-    } catch (error: any) {
+    } catch (error) {
       let errorMessage = 'ログイン中にエラーが発生しました';
       
-      // Handle HTTP errors
-      if (error.response) {
-        const status = error.response.status;
+      // Handle HTTP errors from ky
+      if (error && typeof error === 'object' && 'response' in error) {
+        const httpError = error as { response: { status: number } };
+        const status = httpError.response.status;
         if (status === 401) {
           errorMessage = 'ユーザー名またはパスワードが正しくありません';
         } else if (status === 403) {
           errorMessage = 'アカウントが無効化されています';
         } else if (status >= 500) {
           errorMessage = 'サーバーエラーが発生しました。しばらくしてから再度お試しください';
-        }
-      } else if (error.message) {
-        // Try to parse the backend error message
-        try {
-          const backendError = await error.response?.json();
-          if (backendError?.error?.message) {
-            errorMessage = backendError.error.message;
-          }
-        } catch {
-          // Ignore parse errors
         }
       }
       

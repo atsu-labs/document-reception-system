@@ -172,32 +172,34 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Test user info */}
-          <div className="mt-8 pt-6 border-t border-slate-200">
-            <p className="text-xs text-slate-500 text-center mb-3">
-              テストユーザー
-            </p>
-            <div className="space-y-2 text-xs text-slate-600">
-              <div className="flex justify-between items-center px-3 py-2 bg-slate-50 rounded">
-                <span>管理者</span>
-                <code className="text-slate-800">
-                  admin / password123
-                </code>
-              </div>
-              <div className="flex justify-between items-center px-3 py-2 bg-slate-50 rounded">
-                <span>上位ユーザー</span>
-                <code className="text-slate-800">
-                  senior1 / password123
-                </code>
-              </div>
-              <div className="flex justify-between items-center px-3 py-2 bg-slate-50 rounded">
-                <span>一般ユーザー</span>
-                <code className="text-slate-800">
-                  user1 / password123
-                </code>
+          {/* Test user info - only show in development */}
+          {import.meta.env.DEV && (
+            <div className="mt-8 pt-6 border-t border-slate-200">
+              <p className="text-xs text-slate-500 text-center mb-3">
+                テストユーザー
+              </p>
+              <div className="space-y-2 text-xs text-slate-600">
+                <div className="flex justify-between items-center px-3 py-2 bg-slate-50 rounded">
+                  <span>管理者</span>
+                  <code className="text-slate-800">
+                    admin / password123
+                  </code>
+                </div>
+                <div className="flex justify-between items-center px-3 py-2 bg-slate-50 rounded">
+                  <span>上位ユーザー</span>
+                  <code className="text-slate-800">
+                    senior1 / password123
+                  </code>
+                </div>
+                <div className="flex justify-between items-center px-3 py-2 bg-slate-50 rounded">
+                  <span>一般ユーザー</span>
+                  <code className="text-slate-800">
+                    user1 / password123
+                  </code>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
