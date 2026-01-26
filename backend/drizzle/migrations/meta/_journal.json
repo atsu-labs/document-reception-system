@@ -1,0 +1,13 @@
+{
+  "version": "5",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1769088716504,
+      "tag": "0000_perfect_sprite",
+      "breakpoints": true
+    }
+  ]
+}

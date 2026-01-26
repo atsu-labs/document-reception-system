@@ -18,8 +18,15 @@ RUN pnpm install
 # Copy backend source
 COPY backend ./backend
 
+# Copy docker init script
+COPY docker/init-db.sh /usr/local/bin/init-db.sh
+RUN chmod +x /usr/local/bin/init-db.sh
+
 # Expose port
 EXPOSE 8787
+
+# Use init script as entrypoint
+ENTRYPOINT ["/usr/local/bin/init-db.sh"]
 
 # Default command
 CMD ["pnpm", "--filter", "backend", "dev:local"]
