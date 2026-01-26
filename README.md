@@ -880,5 +880,3 @@ wrangler whoami  # ログイン確認
 ## ライセンス
 
 ISC
-
-ISC
