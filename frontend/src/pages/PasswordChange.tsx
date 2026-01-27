@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuthStore } from '../stores/authStore';
 import { passwordChangeSchema, type PasswordChangeFormData } from '../lib/validations/auth';
 import { Alert, AlertDescription } from '../components/ui/Alert';
 import { PasswordStrength } from '../components/ui/PasswordStrength';
@@ -10,7 +9,6 @@ import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 export default function PasswordChange() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
@@ -52,17 +50,12 @@ export default function PasswordChange() {
       setTimeout(() => {
         navigate('/');
       }, 2000);
-    } catch (err) {
+    } catch {
       setError('パスワードの変更に失敗しました。現在のパスワードが正しいことを確認してください。');
     } finally {
       setIsLoading(false);
     }
   };
-
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">

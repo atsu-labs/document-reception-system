@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority';
-import { AlertCircle, CheckCircle2, Info, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Info, XCircle, X } from 'lucide-react';
 
 const alertVariants = cva(
   'relative w-full rounded-lg border p-4 [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg+div]:pl-8',
@@ -58,7 +58,7 @@ export function Alert({
           className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity"
           aria-label="閉じる"
         >
-          <XCircle className="h-4 w-4" />
+          <X className="h-4 w-4" />
         </button>
       )}
     </div>
