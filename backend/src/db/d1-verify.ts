@@ -40,7 +40,7 @@ async function verifyD1() {
   console.log(`📍 対象環境: ${targetEnv.toUpperCase()}`);
   console.log('');
 
-  const dbName = 'document-reception-db';
+  const dbName = 'document-reception-system';
   const targetFlag = isRemote ? '--remote' : '--local';
 
   try {

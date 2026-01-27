@@ -7,7 +7,7 @@
  * 
  * Usage:
  *   pnpm db:export-seed
- *   wrangler d1 execute document-reception-db --remote --file=./seed-export.sql
+ *   wrangler d1 execute document-reception-system --remote --file=./seed-export.sql
  */
 
 import { randomUUID } from 'crypto';
@@ -151,10 +151,10 @@ async function exportSeed() {
     console.log('');
     console.log('📌 D1への投入方法:');
     console.log('  # ローカルD1でテスト:');
-    console.log('  wrangler d1 execute document-reception-db --local --file=./seed-export.sql');
+    console.log('  wrangler d1 execute document-reception-system --local --file=./seed-export.sql');
     console.log('');
     console.log('  # 本番D1に投入:');
-    console.log('  wrangler d1 execute document-reception-db --remote --file=./seed-export.sql');
+    console.log('  wrangler d1 execute document-reception-system --remote --file=./seed-export.sql');
     console.log('');
     console.log('📌 初期ユーザー情報:');
     console.log('  管理者: username=admin, password=password123');

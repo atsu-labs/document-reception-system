@@ -40,7 +40,7 @@ async function setupD1() {
     console.log(`📍 対象環境: ${targetEnv.toUpperCase()}`);
     console.log('');
 
-    const dbName = 'document-reception-db';
+    const dbName = 'document-reception-system';
 
     // ステップ1: マイグレーション
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -124,7 +124,7 @@ async function setupD1() {
     console.log('  1. wranglerがインストールされているか確認: wrangler --version');
     console.log('  2. D1データベースが作成されているか確認: wrangler d1 list');
     console.log('  3. データベースがない場合は作成:');
-    console.log('     wrangler d1 create document-reception-db');
+    console.log('     wrangler d1 create document-reception-system');
     console.log('  4. wrangler.tomlでD1バインディングが設定されているか確認');
     console.log('  5. マイグレーションファイルが存在するか確認: ls drizzle/migrations/');
     throw error;

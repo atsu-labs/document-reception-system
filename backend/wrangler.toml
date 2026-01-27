@@ -21,6 +21,7 @@ enabled = true
 binding = "DB"
 database_name = "document-reception-system"
 database_id = "3604ca46-f85e-443b-8352-db6e7de21a58"
+migrations_dir = "drizzle/migrations"
 #
 # Migration commands:
 #   wrangler d1 migrations apply document-reception-db --local   # Test locally

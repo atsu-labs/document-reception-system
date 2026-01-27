@@ -13,7 +13,8 @@
 // For now, we maintain a simple implementation that works with D1 in production
 // (Cloudflare Workers) and SQLite for local development convenience.
 
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { drizzle as drizzleBetterSqlite3 } from 'drizzle-orm/better-sqlite3';
+import { drizzle as drizzleD1 } from 'drizzle-orm/d1';
 import Database from 'better-sqlite3';
 import * as schema from './schema';
 
@@ -25,7 +26,7 @@ export interface Env {
   DATABASE_PATH?: string; // Used only for local development fallback
 }
 
-let localDB: ReturnType<typeof drizzle> | null = null;
+let localDB: ReturnType<typeof drizzleBetterSqlite3> | null = null;
 
 /**
  * Get database instance
@@ -45,7 +46,7 @@ export function getDB(env?: Env) {
   // PRIMARY: In Cloudflare Workers, D1 database is available via env.DB
   // This is the preferred production deployment method
   if (env?.DB) {
-    return env.DB;
+    return drizzleD1(env.DB, { schema });
   }
   
   // FALLBACK: For local development with SQLite only
@@ -55,7 +56,7 @@ export function getDB(env?: Env) {
       (typeof process !== 'undefined' && process.env?.DATABASE_PATH) || 
       './data/local.db';
     const sqlite = new Database(dbPath);
-    localDB = drizzle(sqlite, { schema });
+    localDB = drizzleBetterSqlite3(sqlite, { schema });
   }
   
   return localDB;

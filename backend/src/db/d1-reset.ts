@@ -56,6 +56,9 @@ async function resetD1() {
     console.log(`📍 対象環境: ${targetEnv.toUpperCase()}`);
     console.log('');
 
+    const dbName = 'document-reception-system';
+    const targetFlag = isRemote ? '--remote' : '--local';
+
     // 確認プロンプト（--force でない場合）
     if (!force) {
       const confirmed = await askConfirmation(
@@ -68,9 +71,6 @@ async function resetD1() {
       }
       console.log('');
     }
-
-    const dbName = 'document-reception-db';
-    const targetFlag = isRemote ? '--remote' : '--local';
 
     // ステップ1: すべてのテーブルを削除
     console.log('🗑️  すべてのテーブルを削除中...');

@@ -52,7 +52,7 @@ async function seedD1() {
     }
 
     // wranglerコマンドで投入
-    const dbName = 'document-reception-db';
+    const dbName = 'document-reception-system';
     const targetFlag = isRemote ? '--remote' : '--local';
     const command = `wrangler d1 execute ${dbName} ${targetFlag} --file=./seed-export.sql`;
     
@@ -87,7 +87,7 @@ async function seedD1() {
     console.log('  2. D1データベースが作成されているか確認: wrangler d1 list');
     console.log('  3. wrangler.tomlでD1バインディングが設定されているか確認');
     console.log('  4. マイグレーションが適用されているか確認:');
-    console.log('     wrangler d1 migrations list document-reception-db --local');
+    console.log('     wrangler d1 migrations list document-reception-system --local');
     throw error;
   }
 }
