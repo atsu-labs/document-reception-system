@@ -1,7 +1,29 @@
+/**
+ * Database Verification Script (Local Development Only)
+ * 
+ * **D1-FIRST POLICY**
+ * This script is for local development with SQLite only.
+ * 
+ * For production D1 verification:
+ * - Use wrangler d1 execute for query testing
+ * - Or create health-check/verification API endpoints
+ * - Or use Cloudflare Workers scripts with D1 bindings
+ * 
+ * FUTURE EXPANSION POINT:
+ * When Docker/SQLite deployment support is added:
+ * - Create database-agnostic verification interface
+ * - Support different connection methods based on deployment target
+ * - Add database type detection and appropriate query handling
+ */
+
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
 import * as schema from './schema';
 import { eq, desc } from 'drizzle-orm';
+
+console.log('⚠️  LOCAL DEVELOPMENT VERIFICATION (SQLite)');
+console.log('ℹ️  For D1 production, use wrangler d1 execute or create API endpoints');
+console.log('');
 
 // データベースパスを環境変数から取得（デフォルトは './data/local.db'）
 const dbPath = process.env.DATABASE_PATH || './data/local.db';

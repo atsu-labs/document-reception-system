@@ -1,4 +1,42 @@
-# Docker環境でのセットアップ
+# Docker環境でのセットアップ（ローカル開発用のみ）
+
+⚠️ **重要な注意事項**:
+- このDocker環境は**ローカル開発用途のみ**です
+- 本番デプロイには **Cloudflare Workers + D1** を使用してください
+- Docker/SQLite による本番デプロイは**現時点では未サポート**です
+
+## 開発方針（D1-First Policy）
+
+本プロジェクトは Cloudflare D1 を第一優先のデータベースとして開発しています。
+
+- **推奨本番環境**: Cloudflare Workers + Cloudflare D1
+- **ローカル開発**: Node.js + SQLite（このDocker環境）
+- **Docker/SQLite 本番デプロイ**: 未実装・未サポート（将来の拡張余地のみ確保）
+
+### 将来のDocker本番デプロイ対応について（暫定案）
+
+将来的にDocker/SQLiteによる本番デプロイをサポートする場合、以下の対応が必要になります：
+
+**必要な実装項目**:
+1. データベースアダプター層の実装（D1/SQLite切り替え）
+2. 環境変数による明示的なDB選択機構
+3. 本番用Dockerイメージの作成（現在は開発用のみ）
+4. ヘルスチェック・監視機構の実装
+5. バックアップ・リストア手順の整備
+6. パフォーマンスチューニング（接続プーリング等）
+7. セキュリティ強化（シークレット管理、アクセス制御）
+
+**拡張ポイント**:
+- `backend/src/db/client.ts` - getDB関数の環境分岐
+- `backend/src/db/migrate.ts` - マイグレーション戦略の分岐
+- `docker/Dockerfile.backend` - 本番用イメージ設定
+- `docker/docker-compose.yml` - 本番用設定の追加
+
+**現状**: これらは未実装で、コードコメントとして将来の拡張ポイントを残すに留めています。
+
+---
+
+## ローカル開発環境のセットアップ
 
 このディレクトリには、Document Reception SystemをDocker環境で実行するための設定が含まれています。
 
@@ -162,5 +200,25 @@ docker-compose up -d
 
 ## 本番環境への移行
 
-Dockerでの開発環境から本番環境（Cloudflare Workers + D1）への移行については、
+Docker/SQLiteでの開発環境から本番環境（Cloudflare Workers + D1）への移行については、
 プロジェクトルートの [README.md](../README.md) を参照してください。
+
+### Cloudflare Workers + D1 デプロイ手順
+
+```bash
+cd backend
+
+# 1. D1データベースの作成
+wrangler d1 create document-reception-db
+
+# 2. wrangler.tomlにデータベースIDを設定
+
+# 3. マイグレーションの適用
+wrangler d1 migrations apply document-reception-db --remote
+
+# 4. Workers のデプロイ
+pnpm deploy
+```
+
+⚠️ **Docker/SQLite による本番デプロイは現在未サポートです**  
+将来的な対応が必要な場合は、上記「将来のDocker本番デプロイ対応について」を参照してください。

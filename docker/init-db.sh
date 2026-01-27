@@ -1,11 +1,16 @@
 #!/bin/bash
 
-# データベース初期化スクリプト
+# データベース初期化スクリプト（ローカル開発用）
 # Docker環境でバックエンド起動時に実行されます
+#
+# 注意: これはローカル開発（SQLite）専用です
+# 本番環境では Cloudflare D1 + wrangler を使用してください
 
 set -e
 
-echo "🔧 データベース初期化を開始します..."
+echo "🔧 ローカル開発環境: データベース初期化を開始します..."
+echo "ℹ️  本番環境では wrangler d1 migrations apply を使用してください"
+echo ""
 
 # DATABASE_PATH環境変数が設定されているか確認
 if [ -z "$DATABASE_PATH" ]; then
