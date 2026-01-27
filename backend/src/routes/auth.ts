@@ -120,15 +120,7 @@ auth.get('/me', authMiddleware, async (c) => {
   try {
     // Fetch full user details from database
     const [user] = await db
-      .select({
-        id: users.id,
-        username: users.username,
-        displayName: users.displayName,
-        role: users.role,
-        departmentId: users.departmentId,
-        isActive: users.isActive,
-        createdAt: users.createdAt,
-      })
+      .select()
       .from(users)
       .where(eq(users.id, authUser.userId))
       .limit(1);
@@ -140,7 +132,18 @@ auth.get('/me', authMiddleware, async (c) => {
       );
     }
 
-    return c.json(successResponse(user));
+    // Return only necessary fields
+    const userData = {
+      id: user.id,
+      username: user.username,
+      displayName: user.displayName,
+      role: user.role,
+      departmentId: user.departmentId,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+    };
+
+    return c.json(successResponse(userData));
   } catch (error) {
     console.error('Get user error:', error);
     return c.json(
