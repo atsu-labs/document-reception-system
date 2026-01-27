@@ -42,6 +42,9 @@ yarn-error.log*
 *.sqlite
 *.sqlite3
 
+# D1 seed exports (generated files)
+seed-export.sql
+
 # Temporary files
 tmp/
 temp/

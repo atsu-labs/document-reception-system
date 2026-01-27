@@ -187,28 +187,52 @@ pnpm --filter backend build
 # マイグレーションファイル生成（スキーマ変更時）
 pnpm --filter backend db:generate
 
+# --- D1データベース管理（本番・推奨） ---
+# ✅ これらのコマンドを優先的に使用してください
+
+# D1シードデータのエクスポート（SQL生成）
+pnpm --filter backend db:export-seed
+
+# D1へのシードデータ投入
+pnpm --filter backend db:seed:d1 --local   # ローカルD1環境
+pnpm --filter backend db:seed:d1 --remote  # 本番D1環境
+
+# D1データベースの検証
+pnpm --filter backend db:verify:d1 --local   # ローカルD1環境
+pnpm --filter backend db:verify:d1 --remote  # 本番D1環境
+
+# D1データベースのリセット（全削除＋再構築）
+pnpm --filter backend db:reset:d1 --local   # ローカルD1環境
+pnpm --filter backend db:reset:d1 --remote  # 本番D1環境（要注意！）
+
+# D1データベースの一括セットアップ（migrate→seed→verify）
+pnpm --filter backend db:setup:d1 --local   # ローカルD1環境
+pnpm --filter backend db:setup:d1 --remote  # 本番D1環境
+
 # --- ローカル開発（SQLite）専用 ---
-# データベースマイグレーション実行
+# ⚠️ 以下は開発補助用です。本番環境ではD1コマンドを使用してください
+
+# データベースマイグレーション実行（SQLite）
 pnpm --filter backend db:migrate
 
-# Seedデータ投入
+# Seedデータ投入（SQLite）
 pnpm --filter backend db:seed
 
-# データベース検証
+# データベース検証（SQLite）
 pnpm --filter backend db:verify
 
-# データベースセットアップ（migrate + seed + verify）
+# データベースセットアップ（SQLite: migrate + seed + verify）
 pnpm --filter backend db:setup
 
-# データベースリセット（削除 + migrate + seed）
+# データベースリセット（SQLite: 削除 + migrate + seed）
 pnpm --filter backend db:reset
 
-# Drizzle Studio起動（GUI管理ツール）
+# Drizzle Studio起動（GUI管理ツール - SQLite）
 pnpm --filter backend db:studio
 ```
 
-⚠️ **注意**: `db:migrate`, `db:seed`, `db:verify` 等はローカルSQLite専用です。  
-本番D1環境では `wrangler d1` コマンドを使用してください。
+✅ **推奨**: 本番・ステージング環境では D1 コマンド（`db:*:d1`）を使用してください。  
+⚠️ **注意**: SQLite用コマンド（`db:migrate`, `db:seed` 等）はローカル開発専用です。
 
 ### フロントエンド
 
@@ -292,64 +316,6 @@ function getDBAdapter(env: string): DBAdapter {
 
 ---
 
-### 開発環境（SQLite - ローカル開発用のみ）
-
-ローカル開発では、SQLiteデータベース（`backend/data/local.db`）を使用します。
-
-⚠️ **注意**: これは開発用途のみで、本番デプロイには Cloudflare D1 を使用してください。
-
-#### データベースのセットアップ
-
-初回のデータベース作成とシードデータの投入:
-
-```bash
-cd backend
-
-# マイグレーションとシードを一括実行
-pnpm db:setup
-
-# または個別に実行
-pnpm db:migrate  # マイグレーションのみ
-pnpm db:seed     # シードデータのみ
-```
-
-#### 初期ユーザー情報
-
-シード処理により以下のテストユーザーが作成されます:
-
-- **管理者**: `username=admin`, `password=password123`
-- **上位ユーザー**: `username=senior1`, `password=password123`
-- **一般ユーザー**: `username=user1`, `password=password123`
-
-#### データベース管理コマンド
-
-⚠️ **これらはローカル開発（SQLite）専用コマンドです**
-
-```bash
-# マイグレーションファイルの生成
-pnpm --filter backend db:generate
-
-# マイグレーションの実行（ローカルSQLiteのみ）
-pnpm --filter backend db:migrate
-
-# シードデータの投入（ローカルSQLiteのみ）
-pnpm --filter backend db:seed
-
-# Drizzle Studio（GUI）の起動
-pnpm --filter backend db:studio
-```
-
-**本番環境（Cloudflare D1）でのマイグレーション**:
-```bash
-cd backend
-
-# ローカルD1でテスト
-wrangler d1 migrations apply document-reception-db --local
-
-# 本番D1に適用
-wrangler d1 migrations apply document-reception-db --remote
-```
-
 ### Docker環境（ローカル開発用のみ）
 
 ⚠️ **重要**: Docker環境はローカル開発用途のみです。本番デプロイには対応していません。
@@ -367,135 +333,23 @@ docker-compose up -d
 
 データベースファイルは名前付きボリューム `backend-db` に永続化されます。
 
-#### データベースのリセット（Docker）
+#### Docker内でのデータベース管理
 
 ```bash
-# ボリュームを削除して再作成
+# コンテナ内でデータベースセットアップ
+docker-compose exec backend pnpm db:setup
+
+# データベースのリセット（Docker）
 docker-compose down -v
 docker-compose up -d
-```
-
-#### 初回マイグレーション実行手順
-
-1. **マイグレーションファイルの生成**（スキーマ変更時のみ）
-
-   ```bash
-   cd backend
-   pnpm db:generate
-   ```
-
-2. **マイグレーションの実行**
-
-   ```bash
-   pnpm db:migrate
-   ```
-
-   データベースファイル `local.db` が作成され、テーブルが作成されます。
-
-3. **Seedデータの投入**
-
-   ```bash
-   pnpm db:seed
-   ```
-
-   以下のサンプルデータが投入されます：
-   - 4つの部署（総務部、人事部、経理部、営業部）
-   - 2つのワークフローテンプレート（標準、簡易）
-   - 3人のユーザー：
-     - `admin` / `admin123` - 管理者
-     - `senior` / `senior123` - 上級ユーザー
-     - `general` / `general123` - 一般ユーザー
-   - 3つの届出種別（休暇申請、経費精算、物品購入申請）
-   - 2件のサンプル届出データ
-   - 2件の履歴レコード
-
-4. **データベースの検証**
-
-   ```bash
-   pnpm db:verify
-   ```
-
-   データベースの内容を確認し、各種クエリが正常に動作することを検証します。
-
-#### データベースセットアップの一括実行
-
-上記の手順を一度に実行する場合：
-
-```bash
-cd backend
-pnpm db:setup
-```
-
-このコマンドは `db:migrate` → `db:seed` → `db:verify` を順に実行します。
-
-#### データベースのリセット
-
-データベースをリセットして最初からやり直す場合：
-
-```bash
-cd backend
-pnpm db:reset
-```
-
-このコマンドは既存の `local.db` を削除し、マイグレーションとシードを再実行します。
-
-#### 確認用の簡易クエリサンプル
-
-SQLiteコマンドラインで直接クエリを実行する場合：
-
-```bash
-# データベースに接続
-sqlite3 backend/local.db
-
-# テーブル一覧を表示
-.tables
-
-# 全部署を表示
-SELECT * FROM departments;
-
-# ユーザー一覧（部署情報付き）
-SELECT u.username, u.display_name, u.role, d.name as department
-FROM users u
-LEFT JOIN departments d ON u.department_id = d.id;
-
-# 届出一覧（種別と部署情報付き）
-SELECT n.notification_date, nt.name as type, n.property_name, n.current_status
-FROM notifications n
-JOIN notification_types nt ON n.notification_type_id = nt.id;
-
-# 終了
-.quit
-```
-
-#### Docker経由での初回マイグレーション実行
-
-Dockerコンテナ内でマイグレーションを実行する場合：
-
-```bash
-# Dockerコンテナの起動
-cd docker
-docker-compose up -d
-
-# コンテナ内でマイグレーションを実行
-docker-compose exec backend pnpm db:setup
 
 # ログで確認
 docker-compose logs backend
-
-# データベースファイルの確認（永続化ボリューム内）
-docker-compose exec backend ls -la /app/backend/data/
 ```
 
-#### Drizzle Studioでの確認
+詳細は [Docker README](./docker/README.md) を参照してください。
 
-Drizzle Studioを使用してGUIでデータベースを確認できます：
-
-```bash
-cd backend
-pnpm db:studio
-```
-
-ブラウザで https://local.drizzle.studio を開いて確認してください。
+---
 
 ### 本番環境（Cloudflare D1 - 推奨デプロイ方法）
 
@@ -503,34 +357,150 @@ pnpm db:studio
 
 `backend/wrangler.toml` でD1バインディングを設定してください。
 
-#### D1データベースの作成とマイグレーション
+#### D1データベースの初期セットアップ
+
+##### 1. D1データベースの作成
 
 ```bash
 cd backend
 
-# D1データベースの作成
+# D1データベースを作成
 wrangler d1 create document-reception-db
 
-# wrangler.tomlに出力されたデータベースIDを設定
+# 出力されたデータベースIDをコピー
+# 例: database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+```
 
-# マイグレーションファイルの適用
-wrangler d1 migrations apply document-reception-db --local  # ローカルテスト
-wrangler d1 migrations apply document-reception-db --remote # 本番適用
+##### 2. wrangler.tomlの設定
+
+`backend/wrangler.toml` を編集し、D1バインディングを有効化：
+
+```toml
+[[d1_databases]]
+binding = "DB"
+database_name = "document-reception-db"
+database_id = "<YOUR_DATABASE_ID>"  # 上記で取得したIDを設定
+```
+
+##### 3. マイグレーションの適用
+
+```bash
+# ローカルD1でテスト
+wrangler d1 migrations apply document-reception-db --local
+
+# 本番D1に適用
+wrangler d1 migrations apply document-reception-db --remote
 ```
 
 #### D1へのシードデータ投入
 
-本番D1環境へのシードデータ投入は以下の方法で行います：
+✅ **推奨方法**: 専用のD1コマンドを使用
 
 ```bash
-# 方法1: wrangler d1 execute でSQLを実行
-wrangler d1 execute document-reception-db --remote --file=./seed.sql
+cd backend
 
-# 方法2: 専用のシードエンドポイントを実装してAPIから実行
-# （推奨: 本番環境の安全性を考慮）
+# === 方法1: 一括セットアップ（推奨） ===
+# マイグレーション → シード → 検証を一度に実行
+pnpm db:setup:d1 --local    # ローカルD1環境
+pnpm db:setup:d1 --remote   # 本番D1環境
+
+# === 方法2: 個別実行 ===
+
+# シードデータをSQL形式でエクスポート
+pnpm db:export-seed
+
+# D1にシードデータを投入
+pnpm db:seed:d1 --local     # ローカルD1環境
+pnpm db:seed:d1 --remote    # 本番D1環境
+
+# データベース検証
+pnpm db:verify:d1 --local   # ローカルD1環境
+pnpm db:verify:d1 --remote  # 本番D1環境
 ```
 
-⚠️ **注意**: ローカルの `pnpm db:seed` は SQLite 用なので、D1 には使用できません。
+#### D1データベースのリセット
+
+⚠️ **警告**: すべてのデータが削除されます！
+
+```bash
+# ローカルD1環境
+pnpm db:reset:d1 --local
+
+# 本番D1環境（慎重に実行してください）
+pnpm db:reset:d1 --remote
+
+# 確認をスキップする場合（スクリプト実行時）
+pnpm db:reset:d1 --local --force
+```
+
+#### 初期ユーザー情報
+
+シードデータ投入後、以下のテストユーザーが使用可能になります：
+
+- **管理者**: `username=admin`, `password=password123`
+- **上位ユーザー**: `username=senior1`, `password=password123`
+- **一般ユーザー**: `username=user1`, `password=password123`
+
+⚠️ **セキュリティ**: 本番環境では必ずパスワードを変更してください。
+
+#### D1データベース管理の補足
+
+**直接wranglerコマンドを使用する場合**:
+
+```bash
+# D1データベース一覧
+wrangler d1 list
+
+# D1にSQLを直接実行
+wrangler d1 execute document-reception-db --local --command="SELECT * FROM users;"
+wrangler d1 execute document-reception-db --remote --file=./seed-export.sql
+
+# マイグレーション履歴の確認
+wrangler d1 migrations list document-reception-db --local
+wrangler d1 migrations list document-reception-db --remote
+
+# データベース情報の確認
+wrangler d1 info document-reception-db
+```
+
+---
+
+### ローカル開発環境（SQLite - 補助ツール）
+
+⚠️ **重要**: 以下は**ローカル開発のみ**で使用します。本番環境では上記のD1コマンドを使用してください。
+
+ローカル開発では、SQLiteデータベース（`backend/data/local.db`）を使用できます。これは開発の便宜上のみ提供されており、本番デプロイには使用しません。
+
+#### データベースのセットアップ（SQLite）
+
+```bash
+cd backend
+
+# マイグレーションとシードを一括実行
+pnpm db:setup
+
+# または個別に実行
+pnpm db:migrate  # マイグレーションのみ
+pnpm db:seed     # シードデータのみ
+pnpm db:verify   # 検証のみ
+```
+
+#### 初期ユーザー情報（SQLite）
+
+- **管理者**: `username=admin`, `password=password123`
+- **上位ユーザー**: `username=senior1`, `password=password123`
+- **一般ユーザー**: `username=user1`, `password=password123`
+
+#### Drizzle Studioでの確認
+
+Drizzle Studioを使用してGUIでローカルSQLiteデータベースを確認できます：
+
+```bash
+cd backend
+pnpm db:studio
+```
+
+ブラウザで https://local.drizzle.studio を開いて確認してください。
 
 ## 開発フローとPRガイドライン
 
@@ -815,41 +785,108 @@ PORT=5174 pnpm --filter frontend dev
 
 ### データベース関連
 
-#### Q6: マイグレーションエラー
-```bash
-# データベースをリセットして再作成
-cd backend
-pnpm db:reset
-```
+#### Q6: D1データベースが見つからない
 
-**原因**:
-- スキーマの変更とマイグレーションファイルの不整合
-- データベースファイルの破損
+**症状**: `wrangler d1` コマンド実行時にデータベースが見つからないエラー
 
 **解決策**:
 ```bash
-# データベースファイルを削除して再作成
-rm -rf backend/data
-pnpm --filter backend db:migrate
-pnpm --filter backend db:seed
+# D1データベースの一覧を確認
+wrangler d1 list
+
+# データベースが存在しない場合は作成
+wrangler d1 create document-reception-db
+
+# wrangler.tomlにデータベースIDを設定
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "document-reception-db"
+# database_id = "<YOUR_DATABASE_ID>"
 ```
 
-#### Q7: ログイン時に認証エラー
+#### Q7: D1シードデータ投入時のエラー
+
+**症状**: `pnpm db:seed:d1` 実行時にエラーが発生
+
+**原因**:
+- マイグレーションが適用されていない
+- seed-export.sqlが生成されていない
+- wranglerがインストールされていない
+
+**解決策**:
+```bash
+cd backend
+
+# 1. マイグレーションを先に適用
+wrangler d1 migrations apply document-reception-db --local
+
+# 2. シードデータを再投入
+pnpm db:seed:d1 --local
+
+# または一括セットアップ
+pnpm db:setup:d1 --local
+```
+
+#### Q8: D1データ検証時の権限エラー
+
+**症状**: `pnpm db:verify:d1 --remote` 実行時に権限エラー
+
+**解決策**:
+```bash
+# wranglerでログイン状態を確認
+wrangler whoami
+
+# ログインしていない場合
+wrangler login
+
+# 再度検証を実行
+pnpm db:verify:d1 --remote
+```
+
+#### Q9: ローカルSQLiteでマイグレーションエラー（開発環境）
+
+**症状**: ローカル開発でマイグレーション失敗
+
+**解決策**:
+```bash
+# データベースをリセットして再作成（SQLite）
+cd backend
+pnpm db:reset
+
+# または手動で削除
+rm -rf backend/data
+pnpm db:migrate
+pnpm db:seed
+```
+
+#### Q10: ログイン時に認証エラー
+
 **症状**: `401 Unauthorized`エラーが返される
 
 **原因**:
 - シードデータが投入されていない
 - JWT_SECRETの設定ミス
 
-**解決策**:
+**解決策（D1環境）**:
 ```bash
-# シードデータを再投入
+cd backend
+
+# D1にシードデータを投入
+pnpm db:seed:d1 --local    # ローカルD1
+pnpm db:seed:d1 --remote   # 本番D1
+
+# .dev.varsファイルを確認
+cat .dev.vars
+# JWT_SECRETが設定されているか確認
+```
+
+**解決策（SQLite環境）**:
+```bash
 cd backend
 pnpm db:seed
 
 # .dev.varsファイルを確認
 cat .dev.vars
-# JWT_SECRETが設定されているか確認
 ```
 
 **初期ユーザー情報**:
@@ -857,9 +894,11 @@ cat .dev.vars
 - 上位ユーザー: `username=senior1`, `password=password123`
 - 一般ユーザー: `username=user1`, `password=password123`
 
-### Docker関連
+### Docker関連（開発環境のみ）
 
-#### Q8: Dockerコンテナが起動しない
+⚠️ **注意**: Docker環境はローカル開発補助用です。本番環境では D1 を使用してください。
+
+#### Q11: Dockerコンテナが起動しない
 ```bash
 # ログを確認
 cd docker
@@ -872,7 +911,7 @@ docker-compose build --no-cache
 docker-compose up -d
 ```
 
-#### Q9: Dockerでデータベースが初期化されない
+#### Q12: Dockerでデータベースが初期化されない
 ```bash
 # コンテナ内で手動実行
 docker-compose exec backend pnpm db:setup
@@ -884,7 +923,7 @@ docker-compose up -d
 
 ### ビルド関連
 
-#### Q10: TypeScriptのコンパイルエラー
+#### Q13: TypeScriptのコンパイルエラー
 ```bash
 # 型定義を再インストール
 pnpm install
@@ -898,7 +937,7 @@ cat frontend/tsconfig.json
 - node_modulesが壊れている → `rm -rf node_modules && pnpm install`
 - TypeScriptのバージョンが古い → `pnpm add -D typescript@latest`
 
-#### Q11: Viteのビルドエラー
+#### Q14: Viteのビルドエラー
 ```bash
 # キャッシュをクリア
 cd frontend
@@ -908,16 +947,16 @@ pnpm build
 
 ### その他
 
-#### Q12: Drizzle Studioが開かない
+#### Q15: Drizzle Studioが開かない（SQLite開発環境）
 ```bash
 # 別のポートで起動を試す
 cd backend
 pnpm db:studio --port 4984
 ```
 
-**注意**: Drizzle Studioは`https://local.drizzle.studio`で開くため、ブラウザのセキュリティ設定によってはブロックされる場合があります。
+**注意**: Drizzle Studioは`https://local.drizzle.studio`で開くため、ブラウザのセキュリティ設定によってはブロックされる場合があります。これはSQLite開発環境用のツールです。
 
-#### Q13: pnpmワークスペースのフィルターが効かない
+#### Q16: pnpmワークスペースのフィルターが効かない
 ```bash
 # フィルターの正しい記法
 pnpm --filter backend dev     # OK
@@ -925,12 +964,91 @@ pnpm -F backend dev           # OK (短縮形)
 pnpm backend dev              # NG
 ```
 
-#### Q14: Wranglerのログインエラー
+#### Q17: Wranglerのログインエラー
 ```bash
 # Cloudflare Workersへのデプロイ時
 wrangler login
 wrangler whoami  # ログイン確認
+
+# ログアウトして再ログイン
+wrangler logout
+wrangler login
 ```
+
+## D1データベース運用ガイド
+
+### D1環境の選択
+
+本プロジェクトでは以下の環境でD1を使用します：
+
+- **ローカルD1** (`--local`): ローカル開発・テスト用。ローカルマシン上でD1をエミュレート
+- **リモートD1** (`--remote`): 本番・ステージング用。Cloudflare上の実際のD1データベース
+
+### よくある D1 操作
+
+#### 新規環境のセットアップ
+```bash
+cd backend
+
+# 1. D1データベース作成（初回のみ）
+wrangler d1 create document-reception-db
+
+# 2. wrangler.toml にIDを設定
+
+# 3. 一括セットアップ
+pnpm db:setup:d1 --local    # ローカルD1
+pnpm db:setup:d1 --remote   # 本番D1
+```
+
+#### 既存環境へのシード再投入
+```bash
+cd backend
+
+# シードデータのみ投入
+pnpm db:seed:d1 --local     # ローカルD1
+pnpm db:seed:d1 --remote    # 本番D1
+```
+
+#### データベースの完全リセット
+```bash
+cd backend
+
+# ⚠️ 全データ削除＋再構築
+pnpm db:reset:d1 --local    # ローカルD1
+pnpm db:reset:d1 --remote   # 本番D1（慎重に！）
+```
+
+#### データ検証・確認
+```bash
+cd backend
+
+# 検証スクリプトで確認
+pnpm db:verify:d1 --local   # ローカルD1
+pnpm db:verify:d1 --remote  # 本番D1
+
+# または直接SQLを実行
+wrangler d1 execute document-reception-db --local --command="SELECT * FROM users;"
+wrangler d1 execute document-reception-db --remote --command="SELECT COUNT(*) FROM notifications;"
+```
+
+### D1運用のベストプラクティス
+
+1. **ローカルD1で先にテスト**: 本番適用前に必ず `--local` でテスト
+2. **バックアップの考慮**: 重要なデータは定期的にエクスポート
+3. **マイグレーション履歴の管理**: `wrangler d1 migrations list` で適用状況を確認
+4. **本番環境での慎重な操作**: `--remote` での `reset` は極力避ける
+
+### D1とSQLiteの使い分け
+
+| 用途 | 推奨データベース | 理由 |
+|------|------------------|------|
+| 本番環境 | **D1 (--remote)** | Cloudflare Workers統合、スケーラビリティ |
+| ステージング | **D1 (--remote)** | 本番環境と同等の動作確認 |
+| ローカル開発・テスト | **D1 (--local) または SQLite** | D1エミュレーションまたは軽量SQLite |
+| CI/CD | **D1 (--local)** | Cloudflare環境での自動テスト |
+| クイック開発試行 | **SQLite** | セットアップが最も簡単 |
+
+**推奨**: 可能な限り **D1 (--local)** を使用して、本番環境との差異を最小化してください。
 
 ## サポートとコミュニティ
 
