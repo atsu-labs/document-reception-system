@@ -20,6 +20,7 @@ import * as schema from './schema';
 // Environment type definition
 export interface Env {
   DB?: any; // D1 database binding for Cloudflare Workers (PRIMARY)
+                // TODO: Consider using D1Database from @cloudflare/workers-types for better type safety
   JWT_SECRET?: string;
   DATABASE_PATH?: string; // Used only for local development fallback
 }
