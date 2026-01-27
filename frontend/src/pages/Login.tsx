@@ -1,17 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useAuthStore } from '../stores/authStore';
-
-// Login form validation schema
-const loginSchema = z.object({
-  username: z.string().min(1, 'ユーザー名を入力してください'),
-  password: z.string().min(1, 'パスワードを入力してください'),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+import { loginSchema, type LoginFormData } from '../lib/validations/auth';
+import { Alert, AlertDescription } from '../components/ui/Alert';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -66,9 +59,9 @@ export default function Login() {
 
           {/* Error message */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
+            <Alert variant="destructive" className="mb-6" onClose={clearError}>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
 
           {/* Login form */}
@@ -85,7 +78,9 @@ export default function Login() {
                 id="username"
                 type="text"
                 autoComplete="username"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
+                  errors.username ? 'border-red-500' : 'border-slate-300'
+                }`}
                 {...register('username')}
               />
               {errors.username && (
@@ -108,7 +103,9 @@ export default function Login() {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition pr-10"
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition pr-10 ${
+                    errors.password ? 'border-red-500' : 'border-slate-300'
+                  }`}
                   {...register('password')}
                 />
                 <button
@@ -171,6 +168,21 @@ export default function Login() {
               {isLoading ? 'ログイン中...' : 'ログイン'}
             </button>
           </form>
+
+          {/* Terms and Privacy links */}
+          <div className="mt-6 text-center text-xs text-slate-600">
+            <p>
+              ログインすることで、
+              <Link to="/terms" className="text-blue-600 hover:text-blue-700 underline">
+                利用規約
+              </Link>
+              および
+              <Link to="/privacy" className="text-blue-600 hover:text-blue-700 underline">
+                プライバシーポリシー
+              </Link>
+              に同意したものとみなされます。
+            </p>
+          </div>
 
           {/* Test user info - only show in development */}
           {import.meta.env.DEV && (
