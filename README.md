@@ -11,9 +11,15 @@
 ### バックエンド
 - **フレームワーク**: Hono v4
 - **ORM**: Drizzle ORM v0.30
-- **データベース**: Cloudflare D1 (本番) / SQLite (開発)
-- **ランタイム**: Cloudflare Workers / Node.js (Docker)
+- **データベース**: Cloudflare D1 (本番・推奨) / SQLite (ローカル開発のみ)
+- **ランタイム**: Cloudflare Workers (本番) / Node.js (ローカル開発)
 - **言語**: TypeScript v5
+
+**データベース方針 (D1-First Policy)**:
+- 本プロジェクトは **Cloudflare D1 を第一優先** として開発・運用します
+- ローカル開発環境では便宜上 SQLite を使用しますが、これは開発用途のみです
+- Docker/SQLite による本番デプロイは現時点では**未サポート**です（将来的な拡張余地は確保）
+- 詳細は「[データベース戦略](#データベース戦略)」セクションを参照してください
 
 ### フロントエンド
 - **ライブラリ**: React v18
@@ -118,7 +124,9 @@ pnpm --filter backend dev:local
 pnpm --filter frontend dev
 ```
 
-#### 方法2: Docker Composeを使用
+#### 方法2: Docker Composeを使用（開発環境のみ）
+
+⚠️ **注意**: Docker環境はローカル開発用途のみです。本番デプロイには Cloudflare Workers + D1 を使用してください。
 
 ```bash
 cd docker
@@ -165,18 +173,21 @@ pnpm test
 # 開発サーバー起動（Cloudflare Workers環境）
 pnpm --filter backend dev
 
-# ローカル開発サーバー起動（SQLite使用）
+# ローカル開発サーバー起動（SQLite使用 - 開発用）
 pnpm --filter backend dev:local
 
-# デプロイ（Cloudflare Workers）
+# デプロイ（Cloudflare Workers + D1）
 pnpm --filter backend deploy
 
 # ビルド
 pnpm --filter backend build
 
-# データベースマイグレーション生成（スキーマ変更時）
+# === データベース管理コマンド ===
+
+# マイグレーションファイル生成（スキーマ変更時）
 pnpm --filter backend db:generate
 
+# --- ローカル開発（SQLite）専用 ---
 # データベースマイグレーション実行
 pnpm --filter backend db:migrate
 
@@ -195,6 +206,9 @@ pnpm --filter backend db:reset
 # Drizzle Studio起動（GUI管理ツール）
 pnpm --filter backend db:studio
 ```
+
+⚠️ **注意**: `db:migrate`, `db:seed`, `db:verify` 等はローカルSQLite専用です。  
+本番D1環境では `wrangler d1` コマンドを使用してください。
 
 ### フロントエンド
 
@@ -231,9 +245,58 @@ pnpm build
 
 ## データベース
 
-### 開発環境（SQLite）
+### データベース戦略 (D1-First Policy)
+
+本プロジェクトは **Cloudflare D1 を第一優先のデータベース** として設計・運用します。
+
+#### 基本方針
+
+1. **本番環境**: Cloudflare D1 を使用（推奨・サポート対象）
+2. **ローカル開発**: SQLite を使用（開発の便宜上のみ）
+3. **Docker/SQLite デプロイ**: 現時点では**未実装・未サポート**
+
+#### 将来の拡張計画（暫定案）
+
+Docker/SQLite による本番デプロイを将来的に実装する場合、以下のような拡張が必要になります：
+
+**データベースアダプター層の実装**:
+```typescript
+// 将来的な拡張イメージ（未実装）
+interface DBAdapter {
+  query(sql: string, params: any[]): Promise<any>;
+  migrate(): Promise<void>;
+  seed(): Promise<void>;
+}
+
+class D1Adapter implements DBAdapter { /* D1専用実装 */ }
+class SQLiteAdapter implements DBAdapter { /* SQLite専用実装 */ }
+
+function getDBAdapter(env: string): DBAdapter {
+  return env === 'cloudflare' ? new D1Adapter() : new SQLiteAdapter();
+}
+```
+
+**必要な対応項目**:
+- 環境変数による DB タイプの明示的な選択 (`DB_TYPE=d1|sqlite`)
+- マイグレーション戦略の分岐（D1 は wrangler、SQLite は直接実行）
+- シード・検証スクリプトの環境別実装
+- トランザクション処理の差異への対応
+- 接続プーリングやパフォーマンス特性の違いへの対応
+
+**実装時の注意点**:
+- `backend/src/db/client.ts` の `getDB()` 関数が主要な拡張ポイント
+- 各種スクリプト（migrate.ts, seed.ts, verify.ts）の環境分岐
+- ドキュメントへの Docker/SQLite デプロイ手順の追加
+
+**現状**: これらの拡張は実装されておらず、コードコメントとして将来の拡張ポイントを明示するに留めています。
+
+---
+
+### 開発環境（SQLite - ローカル開発用のみ）
 
 ローカル開発では、SQLiteデータベース（`backend/data/local.db`）を使用します。
+
+⚠️ **注意**: これは開発用途のみで、本番デプロイには Cloudflare D1 を使用してください。
 
 #### データベースのセットアップ
 
@@ -260,21 +323,36 @@ pnpm db:seed     # シードデータのみ
 
 #### データベース管理コマンド
 
+⚠️ **これらはローカル開発（SQLite）専用コマンドです**
+
 ```bash
 # マイグレーションファイルの生成
 pnpm --filter backend db:generate
 
-# マイグレーションの実行
+# マイグレーションの実行（ローカルSQLiteのみ）
 pnpm --filter backend db:migrate
 
-# シードデータの投入
+# シードデータの投入（ローカルSQLiteのみ）
 pnpm --filter backend db:seed
 
 # Drizzle Studio（GUI）の起動
 pnpm --filter backend db:studio
 ```
 
-### Docker環境
+**本番環境（Cloudflare D1）でのマイグレーション**:
+```bash
+cd backend
+
+# ローカルD1でテスト
+wrangler d1 migrations apply document-reception-db --local
+
+# 本番D1に適用
+wrangler d1 migrations apply document-reception-db --remote
+```
+
+### Docker環境（ローカル開発用のみ）
+
+⚠️ **重要**: Docker環境はローカル開発用途のみです。本番デプロイには対応していません。
 
 Docker Compose経由で起動する場合、データベースは自動的に初期化されます:
 
@@ -284,7 +362,7 @@ docker-compose up -d
 ```
 
 初回起動時に以下が自動実行されます:
-1. マイグレーションの適用
+1. マイグレーションの適用（SQLite）
 2. シードデータの投入
 
 データベースファイルは名前付きボリューム `backend-db` に永続化されます。
@@ -419,9 +497,10 @@ pnpm db:studio
 
 ブラウザで https://local.drizzle.studio を開いて確認してください。
 
-### 本番環境（Cloudflare D1）
+### 本番環境（Cloudflare D1 - 推奨デプロイ方法）
 
-本番環境では、Cloudflare D1データベースを使用します。
+✅ **本番環境では Cloudflare D1 データベースを使用します（これが推奨・サポート対象です）**
+
 `backend/wrangler.toml` でD1バインディングを設定してください。
 
 #### D1データベースの作成とマイグレーション
@@ -436,8 +515,22 @@ wrangler d1 create document-reception-db
 
 # マイグレーションファイルの適用
 wrangler d1 migrations apply document-reception-db --local  # ローカルテスト
-wrangler d1 migrations apply document-reception-db          # 本番適用
+wrangler d1 migrations apply document-reception-db --remote # 本番適用
 ```
+
+#### D1へのシードデータ投入
+
+本番D1環境へのシードデータ投入は以下の方法で行います：
+
+```bash
+# 方法1: wrangler d1 execute でSQLを実行
+wrangler d1 execute document-reception-db --remote --file=./seed.sql
+
+# 方法2: 専用のシードエンドポイントを実装してAPIから実行
+# （推奨: 本番環境の安全性を考慮）
+```
+
+⚠️ **注意**: ローカルの `pnpm db:seed` は SQLite 用なので、D1 には使用できません。
 
 ## 開発フローとPRガイドライン
 

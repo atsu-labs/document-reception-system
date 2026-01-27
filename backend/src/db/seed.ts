@@ -1,8 +1,30 @@
+/**
+ * Database Seed Script (Local Development Only)
+ * 
+ * **D1-FIRST POLICY**
+ * This script is for local development with SQLite only.
+ * 
+ * For production D1, you should:
+ * - Use wrangler CLI to execute seed operations against D1
+ * - Or create a separate D1-specific seed API endpoint
+ * - Or use Cloudflare Workers scripts with D1 bindings
+ * 
+ * FUTURE EXPANSION POINT:
+ * When Docker/SQLite deployment support is added:
+ * - Consider environment-based seed data (dev/staging/prod)
+ * - Implement a database-agnostic seeding interface
+ * - Handle transaction differences between D1 and SQLite
+ */
+
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
 import * as schema from './schema';
 import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';
+
+console.log('⚠️  LOCAL DEVELOPMENT SEED (SQLite)');
+console.log('ℹ️  For D1 production, use wrangler or create a dedicated seed endpoint');
+console.log('');
 
 // データベースパスを環境変数から取得（デフォルトは './data/local.db'）
 const dbPath = process.env.DATABASE_PATH || './data/local.db';
