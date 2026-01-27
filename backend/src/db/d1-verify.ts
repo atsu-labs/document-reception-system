@@ -62,7 +62,8 @@ async function verifyD1() {
       const command = `wrangler d1 execute ${dbName} ${targetFlag} --command="SELECT COUNT(*) as count FROM ${table};"`;
       try {
         const { stdout } = await execAsync(command);
-        // wranglerの出力からカウントを抽出
+        // NOTE: This regex parsing is fragile and may break with wrangler output format changes
+        // Consider using structured output if available in future wrangler versions
         const match = stdout.match(/count\s*\|\s*(\d+)/i) || stdout.match(/(\d+)/);
         const count = match ? match[1] : '?';
         console.log(`  ${table}: ${count}`);

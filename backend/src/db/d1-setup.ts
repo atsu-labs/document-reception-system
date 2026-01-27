@@ -70,7 +70,7 @@ async function setupD1() {
     console.log('');
 
     try {
-      const { stdout: seedOut, stderr: seedErr } = await execAsync(`tsx src/db/d1-seed.ts ${targetFlag}`);
+      const { stdout: seedOut, stderr: seedErr } = await execAsync(`pnpm db:seed:d1 ${targetFlag}`);
       if (seedOut) console.log(seedOut);
       if (seedErr) console.error(seedErr);
       console.log('✅ シードデータ投入完了');
@@ -87,7 +87,7 @@ async function setupD1() {
     console.log('');
 
     try {
-      const { stdout: verifyOut, stderr: verifyErr } = await execAsync(`tsx src/db/d1-verify.ts ${targetFlag}`);
+      const { stdout: verifyOut, stderr: verifyErr } = await execAsync(`pnpm db:verify:d1 ${targetFlag}`);
       if (verifyOut) console.log(verifyOut);
       if (verifyErr) console.error(verifyErr);
       console.log('✅ データベース検証完了');

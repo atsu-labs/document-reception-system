@@ -75,6 +75,8 @@ async function resetD1() {
     // ステップ1: すべてのテーブルを削除
     console.log('🗑️  すべてのテーブルを削除中...');
     
+    // 重要: 外部キー制約を考慮してテーブルを逆順に削除
+    // 依存関係: notification_history → notifications → (notification_types, users) → (workflow_templates, departments)
     const dropTables = [
       'DROP TABLE IF EXISTS notification_history;',
       'DROP TABLE IF EXISTS notifications;',
@@ -101,7 +103,7 @@ async function resetD1() {
 
     // ステップ3: シードデータを投入
     console.log('🌱 シードデータを投入中...');
-    await execAsync(`tsx src/db/d1-seed.ts ${targetFlag}`);
+    await execAsync(`pnpm db:seed:d1 ${targetFlag}`);
     
     console.log('');
     console.log('✅ D1データベースのリセットが完了しました！');
