@@ -22,27 +22,28 @@ console.log('🔍 D1データベースを検証中...');
 console.log('');
 
 async function verifyD1() {
-  try {
-    // コマンドライン引数から --remote または --local を取得
-    const args = process.argv.slice(2);
-    const isRemote = args.includes('--remote');
-    const isLocal = args.includes('--local');
-    
-    if (!isRemote && !isLocal) {
-      console.error('❌ エラー: --remote または --local を指定してください');
-      console.log('');
-      console.log('使用方法:');
-      console.log('  pnpm db:verify:d1 --local   # ローカルD1環境');
-      console.log('  pnpm db:verify:d1 --remote  # 本番D1環境');
-      process.exit(1);
-    }
-
-    const targetEnv = isRemote ? 'remote' : 'local';
-    console.log(`📍 対象環境: ${targetEnv.toUpperCase()}`);
+  // コマンドライン引数から --remote または --local を取得
+  const args = process.argv.slice(2);
+  const isRemote = args.includes('--remote');
+  const isLocal = args.includes('--local');
+  
+  if (!isRemote && !isLocal) {
+    console.error('❌ エラー: --remote または --local を指定してください');
     console.log('');
+    console.log('使用方法:');
+    console.log('  pnpm db:verify:d1 --local   # ローカルD1環境');
+    console.log('  pnpm db:verify:d1 --remote  # 本番D1環境');
+    process.exit(1);
+  }
 
-    const dbName = 'document-reception-db';
-    const targetFlag = isRemote ? '--remote' : '--local';
+  const targetEnv = isRemote ? 'remote' : 'local';
+  console.log(`📍 対象環境: ${targetEnv.toUpperCase()}`);
+  console.log('');
+
+  const dbName = 'document-reception-db';
+  const targetFlag = isRemote ? '--remote' : '--local';
+
+  try {
 
     console.log('=== D1データベース検証 ===\n');
 
