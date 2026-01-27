@@ -16,7 +16,12 @@
     "db:seed": "tsx src/db/seed.ts",
     "db:verify": "tsx src/db/verify.ts",
     "db:reset": "rm -rf data && pnpm db:migrate && pnpm db:seed",
-    "db:setup": "pnpm db:migrate && pnpm db:seed && pnpm db:verify"
+    "db:setup": "pnpm db:migrate && pnpm db:seed && pnpm db:verify",
+    "db:export-seed": "tsx src/db/d1-seed-export.ts",
+    "db:seed:d1": "tsx src/db/d1-seed.ts",
+    "db:reset:d1": "tsx src/db/d1-reset.ts",
+    "db:verify:d1": "tsx src/db/d1-verify.ts",
+    "db:setup:d1": "tsx src/db/d1-setup.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.9",
