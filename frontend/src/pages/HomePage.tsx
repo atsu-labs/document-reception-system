@@ -60,6 +60,12 @@ export default function HomePage() {
                     <p className="text-xs text-slate-500">{user.username}</p>
                   </div>
                   <button
+                    onClick={() => navigate('/password-change')}
+                    className="px-4 py-2 text-sm font-medium text-blue-700 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition"
+                  >
+                    パスワード変更
+                  </button>
+                  <button
                     onClick={handleLogout}
                     className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition"
                   >
