@@ -1,29 +1,11 @@
-/**
- * Database Migration Script (Local Development Only)
- * 
- * **D1-FIRST POLICY**
- * This script is for local development with SQLite only.
- * 
- * For production D1 migrations, use:
- *   wrangler d1 migrations apply <database-name> [--local|--remote]
- * 
- * FUTURE EXPANSION POINT:
- * When Docker/SQLite deployment support is added:
- * - Consider creating separate migration scripts for D1 and SQLite
- * - Or implement a unified migration runner that detects the target database
- * - Handle SQL dialect differences between D1 (SQLite-based) and standalone SQLite
- * - Coordinate migration versioning across different deployment targets
- */
-
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
-import Database from 'better-sqlite3';
+import { createRequire } from 'module';
 import * as fs from 'fs';
 import * as path from 'path';
 
-console.log('⚠️  LOCAL DEVELOPMENT MIGRATION (SQLite)');
-console.log('ℹ️  For D1 production, use: wrangler d1 migrations apply <database-name>');
-console.log('');
+const require = createRequire(import.meta.url);
+const Database = require('better-sqlite3');
 
 // データベースパスを環境変数から取得（デフォルトは './data/local.db'）
 const dbPath = process.env.DATABASE_PATH || './data/local.db';

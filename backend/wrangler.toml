@@ -17,10 +17,10 @@ enabled = true
 # D1-First Policy: This project prioritizes Cloudflare D1 for production.
 # Docker/SQLite deployment is NOT currently supported for production.
 #
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "document-reception-db"
-# database_id = "<YOUR_DATABASE_ID>"
+[[d1_databases]]
+binding = "DB"
+database_name = "document-reception-system"
+database_id = "3604ca46-f85e-443b-8352-db6e7de21a58"
 #
 # Migration commands:
 #   wrangler d1 migrations apply document-reception-db --local   # Test locally
