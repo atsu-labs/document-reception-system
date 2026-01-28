@@ -1,6 +1,10 @@
-import ky from 'ky';
+import ky from "ky";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787/api';
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD
+    ? "https://document-reception-system.atsu-enterprise.workers.dev/api"
+    : "http://localhost:8787/api");
 
 export const api = ky.create({
   prefixUrl: API_URL,
@@ -8,9 +12,9 @@ export const api = ky.create({
   hooks: {
     beforeRequest: [
       (request) => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         if (token) {
-          request.headers.set('Authorization', `Bearer ${token}`);
+          request.headers.set("Authorization", `Bearer ${token}`);
         }
       },
     ],
