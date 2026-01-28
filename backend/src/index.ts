@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import auth from "./routes/auth";
 import testRoutes from "./routes/test";
+import notificationsRouter from "./routes/notifications";
 
 const app = new Hono();
 
@@ -33,6 +34,9 @@ app.get("/api", (c) => {
 
 // Auth routes
 app.route("/api/auth", auth);
+
+// Notification routes
+app.route("/api/notifications", notificationsRouter);
 
 // Test routes (for development/testing)
 app.route("/api/test", testRoutes);
