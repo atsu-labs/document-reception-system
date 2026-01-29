@@ -299,8 +299,10 @@ export default function NotificationList() {
               {data && data.pagination.totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <div className="text-sm text-muted-foreground">
-                    {data.pagination.total}件中 {((page - 1) * limit) + 1}-
-                    {Math.min(page * limit, data.pagination.total)}件を表示
+                    {data.pagination.total > 0 
+                      ? `${data.pagination.total}件中 ${((page - 1) * limit) + 1}-${Math.min(page * limit, data.pagination.total)}件を表示`
+                      : '0件を表示'
+                    }
                   </div>
                   <div className="flex gap-2">
                     <Button

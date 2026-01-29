@@ -6,7 +6,7 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status }: StatusBadgeProps) {
   const getVariant = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status) {
       case '受付':
         return 'info';
       case '処理中':

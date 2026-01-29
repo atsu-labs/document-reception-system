@@ -83,6 +83,7 @@ export default function HomePage() {
         {/* Quick Actions */}
         <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
+            type="button"
             onClick={() => navigate('/notifications')}
             className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 text-left hover:shadow-md transition-shadow group"
           >
@@ -105,6 +106,7 @@ export default function HomePage() {
           </button>
           
           <button
+            type="button"
             onClick={() => navigate('/notifications/new')}
             className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 text-left hover:shadow-md transition-shadow group"
           >
@@ -127,6 +129,7 @@ export default function HomePage() {
           </button>
 
           <button
+            type="button"
             onClick={() => navigate('/password-change')}
             className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 text-left hover:shadow-md transition-shadow group"
           >
