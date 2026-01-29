@@ -1,24 +1,24 @@
-# Notifications API Documentation
+# 届出API ドキュメント
 
-## Overview
+## 概要
 
-This document describes the REST API endpoints for managing notifications (届出) in the document reception system.
+本ドキュメントでは、届出管理システムにおける届出（notifications）管理のためのREST APIエンドポイントについて説明します。
 
-## Base URL
+## ベースURL
 
 ```
 http://localhost:8787/api/notifications
 ```
 
-## Authentication
+## 認証
 
-All endpoints require JWT authentication. Include the token in the Authorization header:
+すべてのエンドポイントでJWT認証が必要です。Authorizationヘッダーにトークンを含めてください：
 
 ```
 Authorization: Bearer <your-jwt-token>
 ```
 
-Get a token by logging in:
+ログインしてトークンを取得：
 ```bash
 POST /api/auth/login
 {
@@ -27,33 +27,33 @@ POST /api/auth/login
 }
 ```
 
-## Endpoints
+## エンドポイント
 
-### 1. List Notifications
+### 1. 届出一覧取得
 
 **GET** `/api/notifications`
 
-List notifications with pagination and optional filters.
+ページネーションと任意のフィルタを使用して届出一覧を取得します。
 
-**Query Parameters:**
-- `page` (optional): Page number (default: 1)
-- `limit` (optional): Items per page (default: 20)
-- `status` (optional): Filter by current status
-- `departmentId` (optional): Filter by department ID
-- `fromDate` (optional): Filter by notification date >= this date (ISO format)
-- `toDate` (optional): Filter by notification date <= this date (ISO format)
-- `keyword` (optional): Search in property name or content
+**クエリパラメータ:**
+- `page` (任意): ページ番号 (デフォルト: 1)
+- `limit` (任意): 1ページあたりの件数 (デフォルト: 20)
+- `status` (任意): 現在のステータスでフィルタ
+- `departmentId` (任意): 部門IDでフィルタ
+- `fromDate` (任意): 届出日 >= 指定日でフィルタ (ISO形式)
+- `toDate` (任意): 届出日 <= 指定日でフィルタ (ISO形式)
+- `keyword` (任意): 物件名または内容で検索
 
-**Access:**
-- GENERAL: Only notifications from own department
-- SENIOR/ADMIN: All notifications
+**アクセス権限:**
+- GENERAL: 自部門の届出のみ
+- SENIOR/ADMIN: すべての届出
 
-**Example:**
+**例:**
 ```bash
 GET /api/notifications?page=1&limit=10&status=受付
 ```
 
-**Response:**
+**レスポンス:**
 ```json
 {
   "success": true,
@@ -85,22 +85,22 @@ GET /api/notifications?page=1&limit=10&status=受付
 
 ---
 
-### 2. Get Notification Details
+### 2. 届出詳細取得
 
 **GET** `/api/notifications/:id`
 
-Get details of a specific notification.
+特定の届出の詳細情報を取得します。
 
-**Access:**
-- GENERAL: Only notifications from own department
-- SENIOR/ADMIN: All notifications
+**アクセス権限:**
+- GENERAL: 自部門の届出のみ
+- SENIOR/ADMIN: すべての届出
 
-**Example:**
+**例:**
 ```bash
 GET /api/notifications/123e4567-e89b-12d3-a456-426614174000
 ```
 
-**Response:**
+**レスポンス:**
 ```json
 {
   "success": true,
@@ -115,17 +115,17 @@ GET /api/notifications/123e4567-e89b-12d3-a456-426614174000
 
 ---
 
-### 3. Create Notification
+### 3. 届出作成
 
 **POST** `/api/notifications`
 
-Create a new notification.
+新しい届出を作成します。
 
-**Access:**
-- GENERAL: Can only create for own department
-- SENIOR/ADMIN: Can create for any department
+**アクセス権限:**
+- GENERAL: 自部門のみ作成可能
+- SENIOR/ADMIN: すべての部門で作成可能
 
-**Request Body:**
+**リクエストボディ:**
 ```json
 {
   "notificationTypeId": "uuid",
@@ -141,7 +141,7 @@ Create a new notification.
 }
 ```
 
-**Response:**
+**レスポンス:**
 ```json
 {
   "success": true,
@@ -152,32 +152,32 @@ Create a new notification.
 }
 ```
 
-**Note:** Creating a notification automatically creates an initial history entry.
+**注意:** 届出を作成すると、自動的に初期履歴エントリが作成されます。
 
 ---
 
-### 4. Update Notification
+### 4. 届出更新
 
 **PUT** `/api/notifications/:id`
 
-Update an existing notification.
+既存の届出を更新します。
 
-**Access:**
-- GENERAL: Can only update notifications from own department
-- SENIOR/ADMIN: Can update any notification
+**アクセス権限:**
+- GENERAL: 自部門の届出のみ更新可能
+- SENIOR/ADMIN: すべての届出を更新可能
 
-**Request Body:**
+**リクエストボディ:**
 ```json
 {
-  "propertyName": "Updated property name",
-  "content": "Updated content",
+  "propertyName": "更新された物件名",
+  "content": "更新された内容",
   "inspectionDate": "2026-02-15"
 }
 ```
 
-All fields are optional. Only provided fields will be updated.
+すべてのフィールドは任意です。指定されたフィールドのみが更新されます。
 
-**Response:**
+**レスポンス:**
 ```json
 {
   "success": true,
@@ -190,15 +190,15 @@ All fields are optional. Only provided fields will be updated.
 
 ---
 
-### 5. Update Notification Status
+### 5. 届出ステータス更新
 
 **PUT** `/api/notifications/:id/status`
 
-Update the status of a notification. This creates a history entry.
+届出のステータスを更新します。履歴エントリが作成されます。
 
-**Access:** SENIOR and ADMIN only
+**アクセス権限:** SENIORおよびADMINのみ
 
-**Request Body:**
+**リクエストボディ:**
 ```json
 {
   "status": "処理中",
@@ -206,7 +206,7 @@ Update the status of a notification. This creates a history entry.
 }
 ```
 
-**Response:**
+**レスポンス:**
 ```json
 {
   "success": true,
@@ -220,22 +220,22 @@ Update the status of a notification. This creates a history entry.
 
 ---
 
-### 6. Get Notification History
+### 6. 届出履歴取得
 
 **GET** `/api/notifications/:id/history`
 
-Get the status change history for a notification.
+届出のステータス変更履歴を取得します。
 
-**Access:**
-- GENERAL: Only for notifications from own department
-- SENIOR/ADMIN: All notifications
+**アクセス権限:**
+- GENERAL: 自部門の届出のみ
+- SENIOR/ADMIN: すべての届出
 
-**Example:**
+**例:**
 ```bash
 GET /api/notifications/123e4567-e89b-12d3-a456-426614174000/history
 ```
 
-**Response:**
+**レスポンス:**
 ```json
 {
   "success": true,
@@ -264,20 +264,20 @@ GET /api/notifications/123e4567-e89b-12d3-a456-426614174000/history
 
 ---
 
-### 7. Delete Notification
+### 7. 届出削除
 
 **DELETE** `/api/notifications/:id`
 
-Delete a notification and its history.
+届出とその履歴を削除します。
 
-**Access:** ADMIN only
+**アクセス権限:** ADMINのみ
 
-**Example:**
+**例:**
 ```bash
 DELETE /api/notifications/123e4567-e89b-12d3-a456-426614174000
 ```
 
-**Response:**
+**レスポンス:**
 ```json
 {
   "success": true,
@@ -289,79 +289,79 @@ DELETE /api/notifications/123e4567-e89b-12d3-a456-426614174000
 
 ---
 
-## Role-Based Access Control
+## ロールベースアクセス制御
 
-### GENERAL (一般ユーザー)
-- Can view notifications from their own department
-- Can create notifications for their own department
-- Can update notifications from their own department
-- **Cannot** change notification status
-- **Cannot** delete notifications
-- **Cannot** access notifications from other departments
+### GENERAL（一般ユーザー）
+- 自部門の届出の閲覧が可能
+- 自部門の届出の作成が可能
+- 自部門の届出の更新が可能
+- **届出のステータス変更は不可**
+- **届出の削除は不可**
+- **他部門の届出へのアクセスは不可**
 
-### SENIOR (上位ユーザー)
-- Can view all notifications
-- Can create notifications for any department
-- Can update all notifications
-- **Can** change notification status
-- **Cannot** delete notifications
+### SENIOR（上位ユーザー）
+- すべての届出の閲覧が可能
+- すべての部門の届出の作成が可能
+- すべての届出の更新が可能
+- **届出のステータス変更が可能**
+- **届出の削除は不可**
 
-### ADMIN (管理者)
-- Full access to all operations
-- Can view, create, update all notifications
-- Can change notification status
-- **Can** delete notifications
+### ADMIN（管理者）
+- すべての操作に対する完全なアクセス権限
+- すべての届出の閲覧、作成、更新が可能
+- 届出のステータス変更が可能
+- **届出の削除が可能**
 
 ---
 
-## Error Responses
+## エラーレスポンス
 
-All error responses follow this format:
+すべてのエラーレスポンスは以下の形式に従います：
 
 ```json
 {
   "success": false,
   "error": {
     "code": "ERROR_CODE",
-    "message": "Human-readable error message"
+    "message": "人間が読めるエラーメッセージ"
   }
 }
 ```
 
-**Common Error Codes:**
-- `UNAUTHORIZED` (401): Missing or invalid authentication token
-- `FORBIDDEN` (403): Insufficient permissions for the requested operation
-- `NOT_FOUND` (404): Requested notification not found
-- `INTERNAL_ERROR` (500): Server error
+**一般的なエラーコード:**
+- `UNAUTHORIZED` (401): 認証トークンの欠落または無効
+- `FORBIDDEN` (403): 要求された操作に対する権限不足
+- `NOT_FOUND` (404): 要求された届出が見つからない
+- `INTERNAL_ERROR` (500): サーバーエラー
 
 ---
 
-## Examples
+## 使用例
 
-### Example 1: List notifications as GENERAL user
+### 例1: GENERAL ユーザーとして届出一覧を取得
 
 ```bash
-# Login
+# ログイン
 TOKEN=$(curl -s -X POST http://localhost:8787/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"user1","password":"password123"}' \
   | jq -r '.data.token')
 
-# List notifications (will only see own department)
+# 届出一覧を取得（自部門のみ表示）
 curl -X GET "http://localhost:8787/api/notifications?page=1&limit=10" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-### Example 2: Create and update notification status as ADMIN
+### 例2: ADMIN として届出を作成し、ステータスを更新
 
 ```bash
-# Login as admin
+# 管理者としてログイン
 TOKEN=$(curl -s -X POST http://localhost:8787/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"password123"}' \
   | jq -r '.data.token')
 
-# Create notification
+# 届出を作成
 NOTIFICATION_ID=$(curl -s -X POST http://localhost:8787/api/notifications \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
@@ -374,7 +374,7 @@ NOTIFICATION_ID=$(curl -s -X POST http://localhost:8787/api/notifications \
     "currentStatus": "受付"
   }' | jq -r '.data.id')
 
-# Update status
+# ステータスを更新
 curl -X PUT "http://localhost:8787/api/notifications/$NOTIFICATION_ID/status" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
@@ -383,22 +383,22 @@ curl -X PUT "http://localhost:8787/api/notifications/$NOTIFICATION_ID/status" \
     "comment": "処理を開始しました"
   }'
 
-# View history
+# 履歴を確認
 curl -X GET "http://localhost:8787/api/notifications/$NOTIFICATION_ID/history" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
 ---
 
-## Testing
+## テスト
 
-For testing the API, you can use:
+APIのテストには以下のツールを使用できます：
 
-1. **curl** (as shown in examples above)
-2. **Postman** or **Insomnia**
+1. **curl**（上記の例を参照）
+2. **Postman** または **Insomnia**
 3. **HTTPie**: `http GET localhost:8787/api/notifications "Authorization: Bearer $TOKEN"`
 
-Default test users:
-- **admin** / password123 (ADMIN role)
-- **senior1** / password123 (SENIOR role)
-- **user1** / password123 (GENERAL role)
+デフォルトのテストユーザー：
+- **admin** / password123（ADMINロール）
+- **senior1** / password123（SENIORロール）
+- **user1** / password123（GENERALロール）

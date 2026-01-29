@@ -17,13 +17,13 @@ import {
 
 const notificationsRouter = new Hono();
 
-// Apply auth middleware to all notification routes
+// すべての届出ルートに認証ミドルウェアを適用
 notificationsRouter.use('*', authMiddleware);
 
 /**
  * GET /api/notifications
- * List notifications with pagination and filters
- * Access: All authenticated users (filtered by role)
+ * ページネーションとフィルタを使用して届出一覧を取得
+ * アクセス権限: すべての認証済みユーザー（ロールによってフィルタリング）
  */
 notificationsRouter.get('/', zValidator('query', listNotificationsQuerySchema), async (c) => {
   const authUser = getAuthUser(c);
@@ -31,12 +31,12 @@ notificationsRouter.get('/', zValidator('query', listNotificationsQuerySchema), 
   const query = c.req.valid('query');
 
   try {
-    // Build where conditions
+    // WHERE条件を構築
     const conditions = [];
 
-    // Role-based filtering
+    // ロールベースのフィルタリング
     if (authUser.role === 'GENERAL') {
-      // GENERAL users can only see notifications from their department
+      // GENERAL ユーザーは自部門の届出のみ閲覧可能
       const [user] = await db
         .select()
         .from(users)
@@ -52,14 +52,14 @@ notificationsRouter.get('/', zValidator('query', listNotificationsQuerySchema), 
         );
       }
     }
-    // SENIOR and ADMIN can see all notifications (no additional filtering)
+    // SENIOR と ADMIN はすべての届出を閲覧可能（追加フィルタなし）
 
-    // Status filter
+    // ステータスフィルタ
     if (query.status) {
       conditions.push(eq(notifications.currentStatus, query.status));
     }
 
-    // Department filter
+    // 部門フィルタ
     if (query.departmentId) {
       conditions.push(
         or(
@@ -69,7 +69,7 @@ notificationsRouter.get('/', zValidator('query', listNotificationsQuerySchema), 
       );
     }
 
-    // Date range filters
+    // 日付範囲フィルタ
     if (query.fromDate) {
       conditions.push(gte(notifications.notificationDate, query.fromDate));
     }
@@ -77,7 +77,7 @@ notificationsRouter.get('/', zValidator('query', listNotificationsQuerySchema), 
       conditions.push(lte(notifications.notificationDate, query.toDate));
     }
 
-    // Keyword search (property name or content)
+    // キーワード検索（物件名または内容）
     if (query.keyword) {
       conditions.push(
         or(
@@ -87,10 +87,10 @@ notificationsRouter.get('/', zValidator('query', listNotificationsQuerySchema), 
       );
     }
 
-    // Build where clause
+    // WHERE句を構築
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-    // Get all matching records first to count them (simple approach)
+    // 全件取得してカウント（シンプルなアプローチ）
     const allItems = await db
       .select()
       .from(notifications)
@@ -98,11 +98,11 @@ notificationsRouter.get('/', zValidator('query', listNotificationsQuerySchema), 
     
     const total = allItems.length;
 
-    // Get paginated results
+    // ページネーション結果を取得
     const offset = (query.page - 1) * query.limit;
     const items = allItems
       .sort((a, b) => {
-        // Sort by notification date desc, then created at desc
+        // 届出日の降順、次に作成日時の降順でソート
         if (b.notificationDate !== a.notificationDate) {
           return b.notificationDate.localeCompare(a.notificationDate);
         }
@@ -122,8 +122,8 @@ notificationsRouter.get('/', zValidator('query', listNotificationsQuerySchema), 
 
 /**
  * GET /api/notifications/:id
- * Get notification details
- * Access: All authenticated users (with department check for GENERAL)
+ * 届出の詳細情報を取得
+ * アクセス権限: すべての認証済みユーザー（GENERAL は部門チェックあり）
  */
 notificationsRouter.get('/:id', async (c) => {
   const authUser = getAuthUser(c);
@@ -144,9 +144,9 @@ notificationsRouter.get('/:id', async (c) => {
       );
     }
 
-    // Check access permissions
+    // アクセス権限をチェック
     if (authUser.role === 'GENERAL') {
-      // GENERAL users can only access notifications from their department
+      // GENERAL ユーザーは自部門の届出のみアクセス可能
       const [user] = await db
         .select()
         .from(users)
@@ -177,8 +177,8 @@ notificationsRouter.get('/:id', async (c) => {
 
 /**
  * POST /api/notifications
- * Create new notification
- * Access: All authenticated users
+ * 新しい届出を作成
+ * アクセス権限: すべての認証済みユーザー
  */
 notificationsRouter.post('/', zValidator('json', createNotificationSchema), async (c) => {
   const authUser = getAuthUser(c);
@@ -186,9 +186,9 @@ notificationsRouter.post('/', zValidator('json', createNotificationSchema), asyn
   const data = c.req.valid('json');
 
   try {
-    // Check if user has access to the receiving department
+    // ユーザーが受付部門へのアクセス権限を持つかチェック
     if (authUser.role === 'GENERAL') {
-      // GENERAL users can only create notifications for their department
+      // GENERAL ユーザーは自部門の届出のみ作成可能
       const [user] = await db
         .select()
         .from(users)
@@ -207,7 +207,7 @@ notificationsRouter.post('/', zValidator('json', createNotificationSchema), asyn
       }
     }
 
-    // Create notification
+    // 届出を作成
     const id = randomUUID();
     const now = getCurrentTimestamp();
 
@@ -220,7 +220,7 @@ notificationsRouter.post('/', zValidator('json', createNotificationSchema), asyn
       updatedAt: now,
     });
 
-    // Create initial history entry
+    // 初期履歴エントリを作成
     await db.insert(notificationHistory).values({
       id: randomUUID(),
       notificationId: id,
@@ -231,7 +231,7 @@ notificationsRouter.post('/', zValidator('json', createNotificationSchema), asyn
       changedAt: now,
     });
 
-    // Fetch the created notification
+    // 作成された届出を取得
     const [created] = await db
       .select()
       .from(notifications)
@@ -250,8 +250,8 @@ notificationsRouter.post('/', zValidator('json', createNotificationSchema), asyn
 
 /**
  * PUT /api/notifications/:id
- * Update notification
- * Access: SENIOR and ADMIN (full access), GENERAL (own department only)
+ * 届出を更新
+ * アクセス権限: SENIOR と ADMIN（全件アクセス可）、GENERAL（自部門のみ）
  */
 notificationsRouter.put('/:id', zValidator('json', updateNotificationSchema), async (c) => {
   const authUser = getAuthUser(c);
@@ -260,7 +260,7 @@ notificationsRouter.put('/:id', zValidator('json', updateNotificationSchema), as
   const data = c.req.valid('json');
 
   try {
-    // Get existing notification
+    // 既存の届出を取得
     const [existing] = await db
       .select()
       .from(notifications)
@@ -274,9 +274,9 @@ notificationsRouter.put('/:id', zValidator('json', updateNotificationSchema), as
       );
     }
 
-    // Check access permissions
+    // アクセス権限をチェック
     if (authUser.role === 'GENERAL') {
-      // GENERAL users can only update notifications from their department
+      // GENERAL ユーザーは自部門の届出のみ更新可能
       const [user] = await db
         .select()
         .from(users)
@@ -295,7 +295,7 @@ notificationsRouter.put('/:id', zValidator('json', updateNotificationSchema), as
       }
     }
 
-    // Update notification
+    // 届出を更新
     const now = getCurrentTimestamp();
     await db
       .update(notifications)
@@ -306,7 +306,7 @@ notificationsRouter.put('/:id', zValidator('json', updateNotificationSchema), as
       })
       .where(eq(notifications.id, id));
 
-    // Fetch updated notification
+    // 更新された届出を取得
     const [updated] = await db
       .select()
       .from(notifications)
@@ -325,15 +325,15 @@ notificationsRouter.put('/:id', zValidator('json', updateNotificationSchema), as
 
 /**
  * DELETE /api/notifications/:id
- * Delete notification (soft delete - not implemented as schema doesn't have deleted flag)
- * Access: ADMIN only
+ * 届出を削除（スキーマに削除フラグがないため物理削除）
+ * アクセス権限: ADMIN のみ
  */
 notificationsRouter.delete('/:id', requireAdmin, async (c) => {
   const db = getDB(c.env as Env);
   const id = c.req.param('id');
 
   try {
-    // Check if notification exists
+    // 届出の存在をチェック
     const [existing] = await db
       .select()
       .from(notifications)
@@ -347,13 +347,13 @@ notificationsRouter.delete('/:id', requireAdmin, async (c) => {
       );
     }
 
-    // Hard delete (as schema doesn't have soft delete flag)
-    // Delete history first (foreign key constraint)
+    // 物理削除（スキーマに論理削除フラグがないため）
+    // 外部キー制約のため、まず履歴を削除
     await db
       .delete(notificationHistory)
       .where(eq(notificationHistory.notificationId, id));
 
-    // Delete notification
+    // 届出を削除
     await db
       .delete(notifications)
       .where(eq(notifications.id, id));
@@ -372,8 +372,8 @@ notificationsRouter.delete('/:id', requireAdmin, async (c) => {
 
 /**
  * PUT /api/notifications/:id/status
- * Update notification status
- * Access: SENIOR and ADMIN
+ * 届出のステータスを更新
+ * アクセス権限: SENIOR と ADMIN
  */
 notificationsRouter.put('/:id/status', requireSenior, zValidator('json', updateStatusSchema), async (c) => {
   const authUser = getAuthUser(c);
@@ -382,7 +382,7 @@ notificationsRouter.put('/:id/status', requireSenior, zValidator('json', updateS
   const { status, comment } = c.req.valid('json');
 
   try {
-    // Get existing notification
+    // 既存の届出を取得
     const [existing] = await db
       .select()
       .from(notifications)
@@ -398,7 +398,7 @@ notificationsRouter.put('/:id/status', requireSenior, zValidator('json', updateS
 
     const oldStatus = existing.currentStatus;
 
-    // Update status
+    // ステータスを更新
     const now = getCurrentTimestamp();
     await db
       .update(notifications)
@@ -409,7 +409,7 @@ notificationsRouter.put('/:id/status', requireSenior, zValidator('json', updateS
       })
       .where(eq(notifications.id, id));
 
-    // Create history entry
+    // 履歴エントリを作成
     await db.insert(notificationHistory).values({
       id: randomUUID(),
       notificationId: id,
@@ -420,7 +420,7 @@ notificationsRouter.put('/:id/status', requireSenior, zValidator('json', updateS
       changedAt: now,
     });
 
-    // Fetch updated notification
+    // 更新された届出を取得
     const [updated] = await db
       .select()
       .from(notifications)
@@ -439,8 +439,8 @@ notificationsRouter.put('/:id/status', requireSenior, zValidator('json', updateS
 
 /**
  * GET /api/notifications/:id/history
- * Get notification history
- * Access: All authenticated users (with department check for GENERAL)
+ * 届出の履歴を取得
+ * アクセス権限: すべての認証済みユーザー（GENERAL は部門チェックあり）
  */
 notificationsRouter.get('/:id/history', async (c) => {
   const authUser = getAuthUser(c);
@@ -448,7 +448,7 @@ notificationsRouter.get('/:id/history', async (c) => {
   const id = c.req.param('id');
 
   try {
-    // Check if notification exists and user has access
+    // 届出の存在とユーザーのアクセス権限をチェック
     const [notification] = await db
       .select()
       .from(notifications)
@@ -462,7 +462,7 @@ notificationsRouter.get('/:id/history', async (c) => {
       );
     }
 
-    // Check access permissions
+    // アクセス権限をチェック
     if (authUser.role === 'GENERAL') {
       const [user] = await db
         .select()
@@ -482,7 +482,7 @@ notificationsRouter.get('/:id/history', async (c) => {
       }
     }
 
-    // Fetch history
+    // 履歴を取得
     const history = await db
       .select()
       .from(notificationHistory)

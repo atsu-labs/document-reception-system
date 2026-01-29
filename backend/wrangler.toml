@@ -17,12 +17,11 @@ enabled = true
 # D1-First Policy: This project prioritizes Cloudflare D1 for production.
 # Docker/SQLite deployment is NOT currently supported for production.
 #
-# For local development with SQLite, comment out this section and use DATABASE_PATH env var
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "document-reception-system"
-# database_id = "3604ca46-f85e-443b-8352-db6e7de21a58"
-# migrations_dir = "drizzle/migrations"
+[[d1_databases]]
+binding = "DB"
+database_name = "document-reception-system"
+database_id = "3604ca46-f85e-443b-8352-db6e7de21a58"
+migrations_dir = "drizzle/migrations"
 #
 # Migration commands:
 #   wrangler d1 migrations apply document-reception-db --local   # Test locally
