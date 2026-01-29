@@ -2,10 +2,9 @@
 
 このドキュメントは、Drizzle ORMによるデータベース設計・マイグレーション・シードが正しく動作することを検証するためのガイドです。
 
-⚠️ **注意**: このガイドはローカル開発環境（SQLite）での検証方法です。  
-本番環境では **Cloudflare D1** + **wrangler** を使用してください（D1-First Policy）。
+本プロジェクトは **Cloudflare D1** を開発・本番環境の両方で使用します（D1-First Policy）。
 
-## ローカル環境での検証（SQLite - 開発用）
+## D1環境での検証
 
 ### 1. 依存関係のインストール
 
@@ -14,17 +13,19 @@ cd backend
 pnpm install
 ```
 
-### 2. データベースのセットアップ
+### 2. D1データベースのセットアップ
 
 ```bash
-# マイグレーションとシードを一括実行
-pnpm db:setup
+# D1データベースへのマイグレーション実行
+pnpm db:migrate
+
+# シードデータの投入
+pnpm db:seed
 ```
 
 **期待される出力:**
 ```
-🚀 マイグレーションを実行中...
-📍 データベースパス: ./data/local.db
+🚀 D1マイグレーションを実行中...
 ✅ マイグレーションが完了しました！
 
 🌱 データベースのシード処理を開始します...
@@ -37,7 +38,7 @@ pnpm db:setup
 ✅ シード処理が完了しました！
 ```
 
-### 3. データベースの確認
+### 3. D1データベースの確認
 
 #### 方法1: Drizzle Studio（GUI）
 
@@ -45,22 +46,35 @@ pnpm db:setup
 pnpm db:studio
 ```
 
-ブラウザで `https://local.drizzle.studio` が開き、データベースの内容を視覚的に確認できます。
+ブラウザで `https://local.drizzle.studio` が開き、D1データベースの内容を視覚的に確認できます。
 
-#### 方法2: SQLiteコマンド
+#### 方法2: Wrangler D1コマンド
 
 ```bash
-sqlite3 data/local.db "SELECT display_name, username, role FROM users;"
+# ユーザー一覧の確認
+npx wrangler d1 execute DB --local --command "SELECT display_name, username, role FROM users;"
+
+# テーブル一覧の確認
+npx wrangler d1 execute DB --local --command "SELECT name FROM sqlite_master WHERE type='table';"
+
+# レコード数の確認
+npx wrangler d1 execute DB --local --command "SELECT COUNT(*) as count FROM users;"
 ```
 
-**期待される出力:**
+**期待される出力（ユーザー一覧）:**
 ```
-管理者ユーザー|admin|ADMIN
-上位ユーザー|senior1|SENIOR
-一般ユーザー|user1|GENERAL
+display_name    | username | role
+管理者ユーザー  | admin    | ADMIN
+上位ユーザー    | senior1  | SENIOR
+一般ユーザー    | user1    | GENERAL
 ```
 
-### 4. テストユーザーでのログイン確認
+### 4. 開発サーバーの起動と確認
+
+```bash
+# Wranglerで開発サーバーを起動
+pnpm dev
+```
 
 バックエンドサーバーを起動して、以下の認証情報でログインできることを確認:
 
@@ -68,102 +82,66 @@ sqlite3 data/local.db "SELECT display_name, username, role FROM users;"
 - **上位ユーザー**: `username=senior1`, `password=password123`
 - **一般ユーザー**: `username=user1`, `password=password123`
 
-## Docker環境での検証
+### 5. D1データベースのリセット
 
-### 1. Docker Composeで起動
-
-```bash
-cd docker
-cp .env.example .env
-docker-compose up -d
-```
-
-### 2. ログの確認
+開発環境のD1データベースをリセットする場合:
 
 ```bash
-docker-compose logs backend
-```
+# ローカルD1データベースの削除
+rm -rf .wrangler/state/v3/d1
 
-**期待される出力:**
+# マイグレーションとシードを再実行
+pnpm db:migrate
+pnpm db:seed
 ```
-backend_1  | 🔧 データベース初期化を開始します...
-backend_1  | 📦 データベースが見つかりません。新規作成します...
-backend_1  | 🚀 マイグレーションを実行中...
-backend_1  | ✅ マイグレーションが完了しました！
-backend_1  | 🌱 データベースのシード処理を開始します...
-backend_1  | ✅ シード処理が完了しました！
-backend_1  | 🚀 開発サーバーを起動します...
-```
-
-### 3. データベースの確認
-
-```bash
-docker-compose exec backend sqlite3 /app/backend/data/local.db "SELECT COUNT(*) FROM users;"
-```
-
-**期待される出力:**
-```
-3
-```
-
-### 4. データベースのリセット
-
-```bash
-# ボリュームを削除して再作成
-docker-compose down -v
-docker-compose up -d
-```
-
-再起動後、再度データベースが初期化されることを確認してください。
 
 ## 検証チェックリスト
 
-- [ ] `pnpm db:setup` が正常に完了する
-- [ ] `backend/data/local.db` ファイルが作成される
-- [ ] データベースに6つのテーブルが作成される
+- [ ] `pnpm db:migrate` が正常に完了する
+- [ ] D1データベースに6つのテーブルが作成される
   - [ ] users
   - [ ] departments
   - [ ] notification_types
   - [ ] workflow_templates
   - [ ] notifications
   - [ ] notification_history
-- [ ] シードデータが正しく投入される
+- [ ] `pnpm db:seed` でシードデータが正しく投入される
   - [ ] 3人のユーザー（admin, senior1, user1）
   - [ ] 4つの部署（総務部、工務部、検査部、管理部）
   - [ ] 3つの届出種類（工事届、修繕届、検査依頼）
   - [ ] 1つのワークフローテンプレート
   - [ ] 2つのサンプル届出データ
-- [ ] Docker Composeで起動時に自動初期化される
-- [ ] `data/` ディレクトリがGitにコミットされない（.gitignoreで除外）
-- [ ] Drizzle Studioでデータベースを閲覧できる
+- [ ] Drizzle StudioでD1データベースを閲覧できる
+- [ ] `wrangler d1 execute` コマンドでデータを確認できる
+- [ ] `.wrangler/` ディレクトリがGitにコミットされない（.gitignoreで除外）
 
 ## トラブルシューティング
 
 ### マイグレーションエラー
 
 ```bash
-# データベースファイルを削除して再実行
-rm -rf backend/data/
-pnpm --filter backend db:setup
-```
-
-### Docker環境でデータベースが初期化されない
-
-```bash
-# ボリュームを完全に削除
-docker-compose down -v
-docker volume rm docker_backend-db
-
-# 再起動
-docker-compose up -d
+# ローカルD1データベースを削除して再実行
+rm -rf .wrangler/state/v3/d1
+pnpm --filter backend db:migrate
 ```
 
 ### シードデータの再投入
 
 ```bash
-# 既存データを削除してシードを再実行
-rm backend/data/local.db
-pnpm --filter backend db:setup
+# D1データベースをリセットしてシードを再実行
+rm -rf .wrangler/state/v3/d1
+pnpm --filter backend db:migrate
+pnpm --filter backend db:seed
+```
+
+### Wranglerコマンドが動作しない
+
+```bash
+# Wranglerを再インストール
+pnpm install -g wrangler
+
+# または、プロジェクトのローカルWranglerを使用
+npx wrangler --version
 ```
 
 ## データベーススキーマ
@@ -194,6 +172,21 @@ pnpm --filter backend db:setup
 - `departments.code` (UNIQUE)
 - `notification_types.code` (UNIQUE)
 
+## 本番環境へのデプロイ
+
+開発環境でのD1検証が完了したら、本番環境へデプロイします:
+
+```bash
+# 本番環境へのマイグレーション
+npx wrangler d1 migrations apply DB --remote
+
+# 本番環境へのシード投入（必要に応じて）
+pnpm db:seed:prod
+
+# Cloudflare Workersへのデプロイ
+pnpm deploy
+```
+
 ## 次のステップ
 
 データベースのセットアップが完了したら、以下を実装してください:
@@ -201,4 +194,4 @@ pnpm --filter backend db:setup
 1. 認証機能（JWT）の実装
 2. API エンドポイントの実装
 3. フロントエンドとの連携
-4. 本番環境（Cloudflare D1）へのマイグレーション
+4. Cloudflare Workersへのデプロイ
