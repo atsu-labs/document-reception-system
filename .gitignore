@@ -35,13 +35,6 @@ pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Database
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3
-
 # D1 seed exports (generated files)
 seed-export.sql
 
