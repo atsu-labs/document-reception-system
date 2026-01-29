@@ -6,6 +6,9 @@ import HomePage from './pages/HomePage';
 import PasswordChange from './pages/PasswordChange';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import NotificationList from './pages/notifications/NotificationList';
+import NotificationForm from './pages/notifications/NotificationForm';
+import NotificationDetail from './pages/notifications/NotificationDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -35,6 +38,38 @@ function App() {
           element={
             <ProtectedRoute>
               <PasswordChange />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications/new"
+          element={
+            <ProtectedRoute>
+              <NotificationForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications/:id"
+          element={
+            <ProtectedRoute>
+              <NotificationDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications/:id/edit"
+          element={
+            <ProtectedRoute>
+              <NotificationForm />
             </ProtectedRoute>
           }
         />

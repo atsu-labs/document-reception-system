@@ -74,3 +74,13 @@ export interface PaginatedResponse<T> {
     totalPages: number;
   };
 }
+
+export interface NotificationHistory {
+  id: string;
+  notificationId: string;
+  statusFrom: string | null;
+  statusTo: string;
+  changedBy: string;
+  comment?: string | null;
+  changedAt: string;
+}
