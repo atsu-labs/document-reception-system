@@ -4,6 +4,7 @@ import { logger } from "hono/logger";
 import auth from "./routes/auth";
 import testRoutes from "./routes/test";
 import notificationsRouter from "./routes/notifications";
+import masterRouter from "./routes/master";
 
 const app = new Hono();
 
@@ -34,6 +35,9 @@ app.get("/api", (c) => {
 
 // Auth routes
 app.route("/api/auth", auth);
+
+// Master data routes
+app.route("/api/master", masterRouter);
 
 // Notification routes
 app.route("/api/notifications", notificationsRouter);
