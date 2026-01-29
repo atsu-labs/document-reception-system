@@ -189,9 +189,6 @@ JWTトークンは以下の設定で構成されています：
 ```bash
 # JWT シークレット（本番環境では変更必須！）
 JWT_SECRET=your-secure-secret-key-here
-
-# データベースパス
-DATABASE_PATH=./data/local.db
 ```
 
 **⚠️ 重要:** `.dev.vars` ファイルや本番環境のシークレットをバージョン管理にコミットしないでください！
@@ -225,8 +222,7 @@ cd backend
 npm install
 
 # データベースのセットアップ
-npm run db:migrate
-npm run db:seed
+npm run db:setup:d1
 
 # 開発サーバーの起動
 JWT_SECRET=dev-secret-key npm run dev
