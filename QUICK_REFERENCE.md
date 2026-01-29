@@ -27,9 +27,6 @@ pnpm --filter frontend dev          # ターミナル2
 
 # 方法2: 並列起動
 pnpm dev
-
-# 方法3: Docker
-cd docker && docker-compose up -d
 ```
 
 ## 🔗 アクセスURL
@@ -111,28 +108,6 @@ git push origin feature/issue-123-description
 | `test:` | テスト |
 | `chore:` | ツール・設定 |
 
-## 🐳 Docker コマンド
-
-```bash
-# 起動・停止
-cd docker
-docker-compose up -d                # バックグラウンド起動
-docker-compose down                 # 停止
-docker-compose down -v              # ボリューム含めて削除
-
-# ログ確認
-docker-compose logs -f              # 全サービス
-docker-compose logs -f backend      # バックエンドのみ
-
-# コンテナ内でコマンド実行
-docker-compose exec backend pnpm db:setup
-docker-compose exec backend sh      # シェル起動
-
-# 再ビルド
-docker-compose build --no-cache
-docker-compose up -d --build
-```
-
 ## 🔍 トラブルシューティング
 
 ### ポート競合
@@ -160,7 +135,7 @@ pnpm install
 ```bash
 # データベースリセット
 cd backend
-rm -rf data
+pnpm db:reset
 pnpm db:setup
 ```
 
@@ -186,16 +161,15 @@ document-reception-system/
 │   │   ├── db/           # データベース
 │   │   └── utils/        # ユーティリティ
 │   └── drizzle/          # マイグレーション
-├── frontend/             # React + Vite
-│   ├── src/
-│   │   ├── pages/        # ページ
-│   │   ├── components/   # コンポーネント
-│   │   ├── lib/          # ライブラリ
-│   │   ├── hooks/        # フック
-│   │   ├── stores/       # 状態管理
-│   │   └── types/        # 型定義
-│   └── public/           # 静的ファイル
-└── docker/               # Docker設定
+└── frontend/             # React + Vite
+    ├── src/
+    │   ├── pages/        # ページ
+    │   ├── components/   # コンポーネント
+    │   ├── lib/          # ライブラリ
+    │   ├── hooks/        # フック
+    │   ├── stores/       # 状態管理
+    │   └── types/        # 型定義
+    └── public/           # 静的ファイル
 ```
 
 ## 🛠️ よく使うファイル
@@ -207,7 +181,6 @@ document-reception-system/
 | `backend/wrangler.toml` | Cloudflare Workers設定 |
 | `backend/drizzle.config.ts` | Drizzle ORM設定 |
 | `frontend/vite.config.ts` | Vite設定 |
-| `docker/docker-compose.yml` | Docker Compose設定 |
 
 ## 📖 ドキュメント
 
@@ -216,7 +189,6 @@ document-reception-system/
 | [README.md](README.md) | プロジェクト概要・セットアップ |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | コントリビューションガイド |
 | [system_specification.md](system_specification.md) | システム仕様書 |
-| [docker/README.md](docker/README.md) | Docker環境ガイド |
 
 ## 🔗 重要なリンク
 
@@ -250,7 +222,7 @@ alias dev-frontend="pnpm --filter frontend dev"
 ### 開発時の注意点
 
 - `.dev.vars`と`.env`ファイルは`.gitignore`に含まれており、コミットされません
-- データベースファイル（`*.db`）もコミットされません
+- Cloudflare D1を使用しているため、ローカルではwranglerの開発データベースが使用されます
 - `node_modules`は各パッケージごとに管理されます
 - pnpmワークスペースを使用しているため、`pnpm --filter`でパッケージ指定が必要です
 
