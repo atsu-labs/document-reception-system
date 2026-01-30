@@ -61,7 +61,7 @@ Copilot Agentが自動的にIssueからPRを生成する際に、エフェメラ
 #### 1. 環境セットアップ
 ```yaml
 - Node.js v20のインストール
-- pnpm v8のインストール
+- pnpm v9のインストール
 - 依存関係のキャッシュ設定
 - pnpm install実行
 ```
@@ -204,7 +204,7 @@ test-jwt-secret-for-ci-only-do-not-use-in-production
 ```yaml
 env:
   NODE_VERSION: '20'
-  PNPM_VERSION: '8'
+  PNPM_VERSION: '9'
 ```
 
 #### ステップ内で動的に作成
@@ -231,7 +231,7 @@ env:
 
 ```yaml
 env:
-  PNPM_VERSION: '8'  # 変更したいバージョン
+  PNPM_VERSION: '9'  # 変更したいバージョン
 ```
 
 ### タイムアウトの設定
