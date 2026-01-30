@@ -54,35 +54,35 @@ function App() {
           }
         />
         <Route
-            <Route
-              path="/admin/departments"
-              element={
-                <AdminRoute>
-                  <Departments />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/notification-types"
-              element={
-                <AdminRoute>
-                  <NotificationTypes />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/users"
-              element={
-                <AdminRoute>
-                  <Users />
-                </AdminRoute>
-              }
-            />
           path="/notifications/new"
           element={
             <ProtectedRoute>
               <NotificationForm />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/departments"
+          element={
+            <AdminRoute>
+              <Departments />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/notification-types"
+          element={
+            <AdminRoute>
+              <NotificationTypes />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminRoute>
+              <Users />
+            </AdminRoute>
           }
         />
         <Route
