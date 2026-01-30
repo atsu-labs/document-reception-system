@@ -1,5 +1,91 @@
 # AI 駆動開発 共通ガイドライン
 
+## 言語統一ポリシー（最優先）
+
+**このプロジェクトでは、すべてのドキュメントとコミュニケーションを日本語で統一します：**
+
+- **コード内コメント**: 日本語で記述
+- **コミットメッセージ**: 日本語で記述（プレフィックスは英語 `feat:`, `fix:` 等を使用）
+- **プルリクエストのタイトルと説明**: 日本語で記述
+- **Issue のタイトルと説明**: 日本語で記述
+- **README やドキュメント**: 日本語で記述
+- **変数名・関数名・クラス名**: 英語で記述（国際的な標準に従う）
+- **UI表示テキスト**: 日本語で記述（i18n対応の場合はキーは英語）
+
+### 良い例
+
+```typescript
+// ユーザーデータをAPIから取得する
+const fetchUserData = async (userId: string) => {
+  // バリデーションを実行
+  if (!userId) {
+    throw new Error('ユーザーIDが必要です');
+  }
+  
+  try {
+    // APIエンドポイントにリクエストを送信
+    const response = await fetch(`/api/users/${userId}`);
+    return await response.json();
+  } catch (error) {
+    // エラーログを記録
+    console.error('ユーザーデータの取得に失敗しました:', error);
+    throw error;
+  }
+}
+```
+
+**コミットメッセージの例:**
+```
+feat: ユーザー認証機能を追加
+fix: ナビゲーションのバグを修正
+docs: API仕様書を更新
+test: UserServiceの単体テストを追加
+refactor: エラーハンドリングを簡潔化
+chore: 依存関係を最新版に更新
+```
+
+### 悪い例（避けるべき）
+
+```typescript
+// Fetch user data from API
+const fetchUserData = async (userId: string) => {
+  // Execute validation
+  if (!userId) {
+    throw new Error('User ID is required');
+  }
+  
+  try {
+    // Send request to API endpoint
+    const response = await fetch(`/api/users/${userId}`);
+    return await response.json();
+  } catch (error) {
+    // Log error
+    console.error('Failed to fetch user data:', error);
+    throw error;
+  }
+}
+```
+
+**コミットメッセージの悪い例:**
+```
+feat: add user authentication
+fix: resolve navigation bug
+docs: update API documentation
+```
+
+### 英語と日本語が混在している例（避けるべき）
+
+```typescript
+// ユーザーデータを取得
+const fetchUserData = async (userId: string) => {
+  // Validate input
+  if (!userId) {
+    throw new Error('User ID is required'); // エラーメッセージが英語
+  }
+  // ...
+}
+```
+
 ## 開発の基本理念
 
 - 動くコードを書くだけでなく、品質・保守性・安全性を常に意識する
@@ -22,7 +108,7 @@
 - プロジェクト全体で一貫したコーディングスタイルを維持
 - 小さな問題も放置せず、発見次第修正（Broken Windows 理論）
 - コメントは「なぜ」を説明し、「何を」はコードで表現
-- コメントは日本語で記述する
+- コメントは日本語で記述する（言語統一ポリシーを参照）
 
 ## テスト規律
 
@@ -82,9 +168,9 @@
 
 - コンベンショナルコミット形式を使用（feat:, fix:, docs:, test:, refactor:, chore:）
 - コミットは原子的で、単一の変更に焦点を当てる
-- 明確で説明的なコミットメッセージを日本語で記述
+- 明確で説明的なコミットメッセージを日本語で記述（プレフィックスは英語、本文は日本語）
 - main/master ブランチへの直接コミットは避ける
-- プルリクエストは日本語で分かりやすく記載
+- プルリクエストのタイトルと説明は日本語で分かりやすく記載（言語統一ポリシーを参照）
 
 ## コードレビューの姿勢
 
