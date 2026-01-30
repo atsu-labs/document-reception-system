@@ -8,6 +8,10 @@
     "dev:wrangler": "wrangler dev",
     "deploy": "wrangler deploy",
     "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
@@ -28,9 +32,11 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241231.0",
     "@types/bcryptjs": "^2.4.6",
+    "@vitest/ui": "^4.0.18",
     "drizzle-kit": "^0.20.18",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
+    "vitest": "^4.0.18",
     "wrangler": "^3.102.0"
   }
 }
