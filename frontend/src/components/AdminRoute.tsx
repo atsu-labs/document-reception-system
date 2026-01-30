@@ -7,16 +7,18 @@ interface Props {
   children: ReactNode;
 }
 
-export default function AdminRoute({ children }: Props) {
-  const { user } = useAuthStore();
+function AdminInner({ children }: { children: ReactNode }) {
+  const { user, isLoading } = useAuthStore();
 
+  if (isLoading) return null;
+
+  return user?.role === 'ADMIN' ? <>{children}</> : <Navigate to="/" replace />;
+}
+
+export default function AdminRoute({ children }: Props) {
   return (
     <ProtectedRoute>
-      {user?.role === 'ADMIN' ? (
-        <>{children}</>
-      ) : (
-        <Navigate to="/" replace />
-      )}
+      <AdminInner>{children}</AdminInner>
     </ProtectedRoute>
   );
 }
