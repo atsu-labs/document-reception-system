@@ -154,7 +154,7 @@ masterRouter.delete('/departments/:id', requireAdmin, async (c) => {
 
   try {
     const now = getCurrentTimestamp();
-    await db.update(departments).set({ isActive: 0, updatedAt: now }).where(eq(departments.id, id));
+    await db.update(departments).set({ isActive: false, updatedAt: now }).where(eq(departments.id, id));
     return c.json(successResponse({ id }));
   } catch (error) {
     console.error('Delete department error:', error);
@@ -182,8 +182,8 @@ masterRouter.post(
         code: data.code,
         name: data.name,
         description: data.description ?? null,
-        hasInspection: data.hasInspection ? 1 : 0,
-        hasContentField: data.hasContentField ? 1 : 0,
+        hasInspection: !!data.hasInspection,
+        hasContentField: !!data.hasContentField,
         workflowTemplateId: data.workflowTemplateId ?? null,
         sortOrder: data.sortOrder ?? 0,
         createdAt: now,
@@ -232,8 +232,8 @@ masterRouter.put(
           code: data.code,
           name: data.name,
           description: data.description ?? null,
-          hasInspection: data.hasInspection ? 1 : 0,
-          hasContentField: data.hasContentField ? 1 : 0,
+          hasInspection: !!data.hasInspection,
+          hasContentField: !!data.hasContentField,
           workflowTemplateId: data.workflowTemplateId ?? null,
           sortOrder: data.sortOrder ?? 0,
           updatedAt: now,
@@ -255,7 +255,7 @@ masterRouter.delete('/notification-types/:id', requireAdmin, async (c) => {
 
   try {
     const now = getCurrentTimestamp();
-    await db.update(notificationTypes).set({ isActive: 0, updatedAt: now }).where(eq(notificationTypes.id, id));
+    await db.update(notificationTypes).set({ isActive: false, updatedAt: now }).where(eq(notificationTypes.id, id));
     return c.json(successResponse({ id }));
   } catch (error) {
     console.error('Delete notification type error:', error);
@@ -310,7 +310,7 @@ masterRouter.post('/users', requireAdmin, zValidator('json', createUserSchema), 
       displayName: data.displayName,
       role: data.role,
       departmentId: data.departmentId,
-      isActive: 1,
+      isActive: true,
       createdAt: now,
       updatedAt: now,
     });
@@ -333,7 +333,7 @@ masterRouter.put('/users/:id', requireAdmin, async (c) => {
     if (body.displayName) updates.displayName = body.displayName;
     if (body.role) updates.role = body.role;
     if (body.departmentId) updates.departmentId = body.departmentId;
-    if (typeof body.isActive !== 'undefined') updates.isActive = body.isActive ? 1 : 0;
+    if (typeof body.isActive !== 'undefined') updates.isActive = !!body.isActive;
     if (body.password) updates.passwordHash = await hashPassword(body.password);
     updates.updatedAt = getCurrentTimestamp();
 
@@ -352,7 +352,7 @@ masterRouter.delete('/users/:id', requireAdmin, async (c) => {
   const id = c.req.param('id');
 
   try {
-    await db.update(users).set({ isActive: 0, updatedAt: getCurrentTimestamp() }).where(eq(users.id, id));
+    await db.update(users).set({ isActive: false, updatedAt: getCurrentTimestamp() }).where(eq(users.id, id));
     return c.json(successResponse({ id }));
   } catch (error) {
     console.error('Delete user error:', error);

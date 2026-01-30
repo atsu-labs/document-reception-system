@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchUsers, createUser, updateUser, deleteUser } from '../../lib/masterApi';
-import type { User } from '../../types';
+import type { User, UserRole } from '../../types';
 
 export default function Users() {
   const [items, setItems] = useState<User[]>([]);
@@ -24,7 +24,9 @@ export default function Users() {
           if (!username) return;
           const displayName = window.prompt('表示名を入力してください', username) || username;
           const password = window.prompt('初期パスワードを入力してください', 'password123') || 'password123';
-          const role = window.prompt('ロール (GENERAL|SENIOR|ADMIN)', 'GENERAL') as any;
+          const roleInput = window.prompt('ロール (GENERAL|SENIOR|ADMIN)', 'GENERAL') || 'GENERAL';
+          const allowed: UserRole[] = ['GENERAL', 'SENIOR', 'ADMIN'];
+          const role = allowed.includes(roleInput as UserRole) ? (roleInput as UserRole) : 'GENERAL';
           await createUser({ username, displayName, password, role, departmentId: items[0]?.departmentId || '' });
           await load();
         }}
