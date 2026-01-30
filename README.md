@@ -11,15 +11,9 @@
 ### バックエンド
 - **フレームワーク**: Hono v4
 - **ORM**: Drizzle ORM v0.30
-- **データベース**: Cloudflare D1 (本番・推奨) / SQLite (ローカル開発のみ)
+- **データベース**: Cloudflare D1
 - **ランタイム**: Cloudflare Workers (本番) / Node.js (ローカル開発)
 - **言語**: TypeScript v5
-
-**データベース方針 (D1-First Policy)**:
-- 本プロジェクトは **Cloudflare D1 を第一優先** として開発・運用します
-- ローカル開発環境では便宜上 SQLite を使用しますが、これは開発用途のみです
-- Docker/SQLite による本番デプロイは現時点では**未サポート**です（将来的な拡張余地は確保）
-- 詳細は「[データベース戦略](#データベース戦略)」セクションを参照してください
 
 ### フロントエンド
 - **ライブラリ**: React v18
@@ -57,10 +51,6 @@ document-reception-system/
 │   ├── index.html
 │   ├── vite.config.ts
 │   └── package.json
-├── docker/               # Docker設定
-│   ├── docker-compose.yml
-│   ├── Dockerfile.backend
-│   └── Dockerfile.frontend
 ├── package.json          # ワークスペースルート
 └── pnpm-workspace.yaml   # pnpmワークスペース設定
 ```
@@ -71,7 +61,6 @@ document-reception-system/
 
 - **Node.js**: v20以上
 - **pnpm**: v8以上
-- **Docker & Docker Compose**: (オプション) Docker経由での開発を行う場合
 
 ### 1. リポジトリのクローン
 
@@ -124,25 +113,6 @@ pnpm --filter backend dev:local
 pnpm --filter frontend dev
 ```
 
-#### 方法2: Docker Composeを使用（開発環境のみ）
-
-⚠️ **注意**: Docker環境はローカル開発用途のみです。本番デプロイには Cloudflare Workers + D1 を使用してください。
-
-```bash
-cd docker
-cp .env.example .env
-# .env を編集して、必要な環境変数を設定
-
-# サービスの起動
-docker-compose up -d
-
-# ログの確認
-docker-compose logs -f
-
-# サービスの停止
-docker-compose down
-```
-
 ### 6. アプリケーションへのアクセス
 
 - **フロントエンド**: http://localhost:5173
@@ -173,7 +143,7 @@ pnpm test
 # 開発サーバー起動（Cloudflare Workers環境）
 pnpm --filter backend dev
 
-# ローカル開発サーバー起動（SQLite使用 - 開発用）
+# ローカル開発サーバー起動（ローカルD1使用）
 pnpm --filter backend dev:local
 
 # デプロイ（Cloudflare Workers + D1）
@@ -208,31 +178,7 @@ pnpm --filter backend db:reset:d1 --remote  # 本番D1環境（要注意！）
 # D1データベースの一括セットアップ（migrate→seed→verify）
 pnpm --filter backend db:setup:d1 --local   # ローカルD1環境
 pnpm --filter backend db:setup:d1 --remote  # 本番D1環境
-
-# --- ローカル開発（SQLite）専用 ---
-# ⚠️ 以下は開発補助用です。本番環境ではD1コマンドを使用してください
-
-# データベースマイグレーション実行（SQLite）
-pnpm --filter backend db:migrate
-
-# Seedデータ投入（SQLite）
-pnpm --filter backend db:seed
-
-# データベース検証（SQLite）
-pnpm --filter backend db:verify
-
-# データベースセットアップ（SQLite: migrate + seed + verify）
-pnpm --filter backend db:setup
-
-# データベースリセット（SQLite: 削除 + migrate + seed）
-pnpm --filter backend db:reset
-
-# Drizzle Studio起動（GUI管理ツール - SQLite）
-pnpm --filter backend db:studio
 ```
-
-✅ **推奨**: 本番・ステージング環境では D1 コマンド（`db:*:d1`）を使用してください。  
-⚠️ **注意**: SQLite用コマンド（`db:migrate`, `db:seed` 等）はローカル開発専用です。
 
 ### フロントエンド
 
@@ -269,91 +215,9 @@ pnpm build
 
 ## データベース
 
-### データベース戦略 (D1-First Policy)
+### 本番環境（Cloudflare D1）
 
-本プロジェクトは **Cloudflare D1 を第一優先のデータベース** として設計・運用します。
-
-#### 基本方針
-
-1. **本番環境**: Cloudflare D1 を使用（推奨・サポート対象）
-2. **ローカル開発**: SQLite を使用（開発の便宜上のみ）
-3. **Docker/SQLite デプロイ**: 現時点では**未実装・未サポート**
-
-#### 将来の拡張計画（暫定案）
-
-Docker/SQLite による本番デプロイを将来的に実装する場合、以下のような拡張が必要になります：
-
-**データベースアダプター層の実装**:
-```typescript
-// 将来的な拡張イメージ（未実装）
-interface DBAdapter {
-  query(sql: string, params: any[]): Promise<any>;
-  migrate(): Promise<void>;
-  seed(): Promise<void>;
-}
-
-class D1Adapter implements DBAdapter { /* D1専用実装 */ }
-class SQLiteAdapter implements DBAdapter { /* SQLite専用実装 */ }
-
-function getDBAdapter(env: string): DBAdapter {
-  return env === 'cloudflare' ? new D1Adapter() : new SQLiteAdapter();
-}
-```
-
-**必要な対応項目**:
-- 環境変数による DB タイプの明示的な選択 (`DB_TYPE=d1|sqlite`)
-- マイグレーション戦略の分岐（D1 は wrangler、SQLite は直接実行）
-- シード・検証スクリプトの環境別実装
-- トランザクション処理の差異への対応
-- 接続プーリングやパフォーマンス特性の違いへの対応
-
-**実装時の注意点**:
-- `backend/src/db/client.ts` の `getDB()` 関数が主要な拡張ポイント
-- 各種スクリプト（migrate.ts, seed.ts, verify.ts）の環境分岐
-- ドキュメントへの Docker/SQLite デプロイ手順の追加
-
-**現状**: これらの拡張は実装されておらず、コードコメントとして将来の拡張ポイントを明示するに留めています。
-
----
-
-### Docker環境（ローカル開発用のみ）
-
-⚠️ **重要**: Docker環境はローカル開発用途のみです。本番デプロイには対応していません。
-
-Docker Compose経由で起動する場合、データベースは自動的に初期化されます:
-
-```bash
-cd docker
-docker-compose up -d
-```
-
-初回起動時に以下が自動実行されます:
-1. マイグレーションの適用（SQLite）
-2. シードデータの投入
-
-データベースファイルは名前付きボリューム `backend-db` に永続化されます。
-
-#### Docker内でのデータベース管理
-
-```bash
-# コンテナ内でデータベースセットアップ
-docker-compose exec backend pnpm db:setup
-
-# データベースのリセット（Docker）
-docker-compose down -v
-docker-compose up -d
-
-# ログで確認
-docker-compose logs backend
-```
-
-詳細は [Docker README](./docker/README.md) を参照してください。
-
----
-
-### 本番環境（Cloudflare D1 - 推奨デプロイ方法）
-
-✅ **本番環境では Cloudflare D1 データベースを使用します（これが推奨・サポート対象です）**
+✅ **本プロジェクトは Cloudflare D1 データベースを使用します**
 
 `backend/wrangler.toml` でD1バインディングを設定してください。
 
@@ -464,43 +328,6 @@ wrangler d1 info document-reception-db
 ```
 
 ---
-
-### ローカル開発環境（SQLite - 補助ツール）
-
-⚠️ **重要**: 以下は**ローカル開発のみ**で使用します。本番環境では上記のD1コマンドを使用してください。
-
-ローカル開発では、SQLiteデータベース（`backend/data/local.db`）を使用できます。これは開発の便宜上のみ提供されており、本番デプロイには使用しません。
-
-#### データベースのセットアップ（SQLite）
-
-```bash
-cd backend
-
-# マイグレーションとシードを一括実行
-pnpm db:setup
-
-# または個別に実行
-pnpm db:migrate  # マイグレーションのみ
-pnpm db:seed     # シードデータのみ
-pnpm db:verify   # 検証のみ
-```
-
-#### 初期ユーザー情報（SQLite）
-
-- **管理者**: `username=admin`, `password=password123`
-- **上位ユーザー**: `username=senior1`, `password=password123`
-- **一般ユーザー**: `username=user1`, `password=password123`
-
-#### Drizzle Studioでの確認
-
-Drizzle Studioを使用してGUIでローカルSQLiteデータベースを確認できます：
-
-```bash
-cd backend
-pnpm db:studio
-```
-
-ブラウザで https://local.drizzle.studio を開いて確認してください。
 
 ## 開発フローとPRガイドライン
 
@@ -642,7 +469,6 @@ git commit -m "docs: データベースセットアップ手順を更新"
 #### `.dev.vars` (作成が必要)
 - 開発環境用の環境変数（`.dev.vars.example`からコピー）
 - **JWT_SECRET**: JWT認証の秘密鍵（本番環境では必ず変更）
-- **DATABASE_PATH**: SQLiteデータベースのパス
 - **注意**: このファイルは`.gitignore`に含まれているため、コミットしないこと
 
 #### `drizzle.config.ts`
@@ -676,22 +502,6 @@ git commit -m "docs: データベースセットアップ手順を更新"
 - TypeScriptコンパイラの設定
 - アプリケーションコードとビルドツール用で分離
 
-### Docker (`docker/`)
-
-#### `.env` (作成が必要)
-- Docker Compose用の環境変数（`.env.example`からコピー）
-- **JWT_SECRET**: バックエンド用のJWT秘密鍵
-- **DATABASE_PATH**: コンテナ内のデータベースパス
-
-#### `docker-compose.yml`
-- サービス構成（backend, frontend）を定義
-- ポート、ボリューム、ネットワーク設定
-- 開発環境でのホットリロードに対応
-
-#### `Dockerfile.backend` / `Dockerfile.frontend`
-- 各サービスのDockerイメージビルド手順
-- マルチステージビルドで最適化
-
 ## よくあるエラーとトラブルシューティング
 
 ### インストール・セットアップ関連
@@ -718,31 +528,9 @@ npm install -g pnpm@latest
 node -v  # v20以上か確認
 ```
 
-#### Q2: データベースファイルが作成されない
-```bash
-# マイグレーションを手動実行
-cd backend
-pnpm db:migrate
-pnpm db:seed
-```
-
-**原因**:
-- backendディレクトリの権限問題
-- SQLiteがインストールされていない
-
-**解決策**:
-```bash
-# ディレクトリの作成と権限設定
-mkdir -p backend/data
-chmod 755 backend/data
-
-# macOSの場合、Xcodeコマンドラインツールのインストール
-xcode-select --install
-```
-
 ### 開発サーバー関連
 
-#### Q3: バックエンドが起動しない（ポート8787）
+#### Q2: バックエンドが起動しない（ポート8787）
 ```bash
 # ポートを使用しているプロセスを確認
 lsof -i :8787
@@ -758,7 +546,7 @@ kill -9 <PID>
 # port = 8788
 ```
 
-#### Q4: フロントエンドが起動しない（ポート5173）
+#### Q3: フロントエンドが起動しない（ポート5173）
 ```bash
 # ポートを使用しているプロセスを確認
 lsof -i :5173
@@ -767,7 +555,7 @@ lsof -i :5173
 PORT=5174 pnpm --filter frontend dev
 ```
 
-#### Q5: APIへのリクエストが失敗する（CORS エラー）
+#### Q4: APIへのリクエストが失敗する（CORS エラー）
 **症状**: ブラウザのコンソールに`CORS policy`エラーが表示される
 
 **解決策**:
@@ -785,7 +573,7 @@ PORT=5174 pnpm --filter frontend dev
 
 ### データベース関連
 
-#### Q6: D1データベースが見つからない
+#### Q5: D1データベースが見つからない
 
 **症状**: `wrangler d1` コマンド実行時にデータベースが見つからないエラー
 
@@ -804,7 +592,7 @@ wrangler d1 create document-reception-db
 # database_id = "<YOUR_DATABASE_ID>"
 ```
 
-#### Q7: D1シードデータ投入時のエラー
+#### Q6: D1シードデータ投入時のエラー
 
 **症状**: `pnpm db:seed:d1` 実行時にエラーが発生
 
@@ -827,7 +615,7 @@ pnpm db:seed:d1 --local
 pnpm db:setup:d1 --local
 ```
 
-#### Q8: D1データ検証時の権限エラー
+#### Q7: D1データ検証時の権限エラー
 
 **症状**: `pnpm db:verify:d1 --remote` 実行時に権限エラー
 
@@ -843,23 +631,7 @@ wrangler login
 pnpm db:verify:d1 --remote
 ```
 
-#### Q9: ローカルSQLiteでマイグレーションエラー（開発環境）
-
-**症状**: ローカル開発でマイグレーション失敗
-
-**解決策**:
-```bash
-# データベースをリセットして再作成（SQLite）
-cd backend
-pnpm db:reset
-
-# または手動で削除
-rm -rf backend/data
-pnpm db:migrate
-pnpm db:seed
-```
-
-#### Q10: ログイン時に認証エラー
+#### Q8: ログイン時に認証エラー
 
 **症状**: `401 Unauthorized`エラーが返される
 
@@ -867,7 +639,7 @@ pnpm db:seed
 - シードデータが投入されていない
 - JWT_SECRETの設定ミス
 
-**解決策（D1環境）**:
+**解決策**:
 ```bash
 cd backend
 
@@ -880,50 +652,14 @@ cat .dev.vars
 # JWT_SECRETが設定されているか確認
 ```
 
-**解決策（SQLite環境）**:
-```bash
-cd backend
-pnpm db:seed
-
-# .dev.varsファイルを確認
-cat .dev.vars
-```
-
 **初期ユーザー情報**:
 - 管理者: `username=admin`, `password=password123`
 - 上位ユーザー: `username=senior1`, `password=password123`
 - 一般ユーザー: `username=user1`, `password=password123`
 
-### Docker関連（開発環境のみ）
-
-⚠️ **注意**: Docker環境はローカル開発補助用です。本番環境では D1 を使用してください。
-
-#### Q11: Dockerコンテナが起動しない
-```bash
-# ログを確認
-cd docker
-docker-compose logs backend
-docker-compose logs frontend
-
-# コンテナを再ビルド
-docker-compose down
-docker-compose build --no-cache
-docker-compose up -d
-```
-
-#### Q12: Dockerでデータベースが初期化されない
-```bash
-# コンテナ内で手動実行
-docker-compose exec backend pnpm db:setup
-
-# ボリュームを削除して再作成
-docker-compose down -v
-docker-compose up -d
-```
-
 ### ビルド関連
 
-#### Q13: TypeScriptのコンパイルエラー
+#### Q9: TypeScriptのコンパイルエラー
 ```bash
 # 型定義を再インストール
 pnpm install
@@ -937,7 +673,7 @@ cat frontend/tsconfig.json
 - node_modulesが壊れている → `rm -rf node_modules && pnpm install`
 - TypeScriptのバージョンが古い → `pnpm add -D typescript@latest`
 
-#### Q14: Viteのビルドエラー
+#### Q10: Viteのビルドエラー
 ```bash
 # キャッシュをクリア
 cd frontend
@@ -947,16 +683,7 @@ pnpm build
 
 ### その他
 
-#### Q15: Drizzle Studioが開かない（SQLite開発環境）
-```bash
-# 別のポートで起動を試す
-cd backend
-pnpm db:studio --port 4984
-```
-
-**注意**: Drizzle Studioは`https://local.drizzle.studio`で開くため、ブラウザのセキュリティ設定によってはブロックされる場合があります。これはSQLite開発環境用のツールです。
-
-#### Q16: pnpmワークスペースのフィルターが効かない
+#### Q11: pnpmワークスペースのフィルターが効かない
 ```bash
 # フィルターの正しい記法
 pnpm --filter backend dev     # OK
@@ -964,7 +691,7 @@ pnpm -F backend dev           # OK (短縮形)
 pnpm backend dev              # NG
 ```
 
-#### Q17: Wranglerのログインエラー
+#### Q12: Wranglerのログインエラー
 ```bash
 # Cloudflare Workersへのデプロイ時
 wrangler login
@@ -1038,15 +765,14 @@ wrangler d1 execute document-reception-db --remote --command="SELECT COUNT(*) FR
 3. **マイグレーション履歴の管理**: `wrangler d1 migrations list` で適用状況を確認
 4. **本番環境での慎重な操作**: `--remote` での `reset` は極力避ける
 
-### D1とSQLiteの使い分け
+### D1環境の使い分け
 
 | 用途 | 推奨データベース | 理由 |
 |------|------------------|------|
 | 本番環境 | **D1 (--remote)** | Cloudflare Workers統合、スケーラビリティ |
 | ステージング | **D1 (--remote)** | 本番環境と同等の動作確認 |
-| ローカル開発・テスト | **D1 (--local) または SQLite** | D1エミュレーションまたは軽量SQLite |
+| ローカル開発・テスト | **D1 (--local)** | D1エミュレーション |
 | CI/CD | **D1 (--local)** | Cloudflare環境での自動テスト |
-| クイック開発試行 | **SQLite** | セットアップが最も簡単 |
 
 **推奨**: 可能な限り **D1 (--local)** を使用して、本番環境との差異を最小化してください。
 
@@ -1076,7 +802,6 @@ wrangler d1 execute document-reception-db --remote --command="SELECT COUNT(*) FR
 
 - **プロジェクト内部**:
   - [システム仕様書](./system_specification.md) - 詳細な技術仕様
-  - [Docker README](./docker/README.md) - Docker環境の詳細ガイド
   - [コントリビューションガイド](./CONTRIBUTING.md) - 開発参加方法
   - [クイックリファレンス](./QUICK_REFERENCE.md) - よく使うコマンド集
 

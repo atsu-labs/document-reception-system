@@ -7,15 +7,12 @@ compatibility_flags = ["nodejs_compat"]
 [observability]
 enabled = true
 
-# D1 Database binding (for production - RECOMMENDED DEPLOYMENT)
+# D1 Database binding
 # 
 # To set up D1 database:
 # 1. Create D1 database: wrangler d1 create document-reception-db
-# 2. Uncomment the section below and replace <YOUR_DATABASE_ID> with the actual ID
+# 2. Update database_id below with the actual ID
 # 3. Apply migrations: wrangler d1 migrations apply document-reception-db --remote
-#
-# D1-First Policy: This project prioritizes Cloudflare D1 for production.
-# Docker/SQLite deployment is NOT currently supported for production.
 #
 [[d1_databases]]
 binding = "DB"

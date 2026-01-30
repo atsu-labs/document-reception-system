@@ -25,8 +25,8 @@
 
 ### 1.2 特徴
 - スモールスタートでの段階的な機能拡張
-- Cloudflare D1とSQLiteの両対応（開発/本番環境の切り替え）
-- Cloudflare WorkersまたはDockerでのデプロイ対応
+- Cloudflare D1データベース
+- Cloudflare Workersでのデプロイ対応
 - 組織内部専用（インターネット公開なし）
 
 ### 1.3 主要機能
@@ -41,10 +41,10 @@
 ### 2.1 バックエンド
 - **フレームワーク**: Hono v4系
 - **ORM**: Drizzle ORM v0.30系
-- **データベース**: Cloudflare D1 (本番) / SQLite (開発)
+- **データベース**: Cloudflare D1
 - **認証**: JWT (hono/jwt)
 - **バリデーション**: Zod
-- **ランタイム**: Cloudflare Workers / Node.js (Docker)
+- **ランタイム**: Cloudflare Workers
 - **言語**: TypeScript v5系
 
 ### 2.2 フロントエンド
@@ -63,7 +63,6 @@
 
 ### 2.3 デプロイ
 - **本番**: Cloudflare Workers (API) + Cloudflare Pages (フロントエンド)
-- **開発**: Docker (オプション)
 
 ---
 
@@ -399,7 +398,7 @@ project/
 │   │   │   ├── notification.service.ts
 │   │   │   └── master.service.ts
 │   │   ├── db/
-│   │   │   ├── client.ts               # DB接続（D1/SQLite切替）
+│   │   │   ├── client.ts               # DB接続
 │   │   │   └── schema.ts               # Drizzleスキーマ定義
 │   │   └── utils/
 │   │       ├── validation.ts           # Zodスキーマ
@@ -461,10 +460,6 @@ project/
 │       ├── notification.ts
 │       ├── master.ts
 │       └── api.ts                      # APIレスポンス型
-│
-├── docker/
-│   ├── Dockerfile
-│   └── docker-compose.yml
 │
 ├── .gitignore
 ├── README.md
