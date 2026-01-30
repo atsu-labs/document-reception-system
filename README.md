@@ -14,6 +14,7 @@
 - **データベース**: Cloudflare D1
 - **ランタイム**: Cloudflare Workers (本番) / Node.js (ローカル開発)
 - **言語**: TypeScript v5
+- **テスト**: Vitest
 
 ### フロントエンド
 - **ライブラリ**: React v18
@@ -22,6 +23,12 @@
 - **状態管理**: TanStack Query, Zustand
 - **UI**: shadcn/ui (Radix UI + Tailwind CSS)
 - **言語**: TypeScript v5
+- **テスト**: Vitest + React Testing Library
+
+### CI/CD
+- **CI**: GitHub Actions
+- **テスト自動化**: Vitest
+- **D1統合**: ローカルD1エミュレーション
 
 ## プロジェクト構成
 
@@ -776,6 +783,59 @@ wrangler d1 execute document-reception-db --remote --command="SELECT COUNT(*) FR
 
 **推奨**: 可能な限り **D1 (--local)** を使用して、本番環境との差異を最小化してください。
 
+## テストとCI/CD
+
+### テストの実行
+
+```bash
+# すべてのテストを実行
+pnpm test
+
+# バックエンドテストのみ
+pnpm --filter backend test
+
+# フロントエンドテストのみ
+pnpm --filter frontend test
+
+# ウォッチモードで実行
+pnpm -r test:watch
+
+# カバレッジレポートを生成
+pnpm -r test:coverage
+```
+
+### CI/CDパイプライン
+
+本プロジェクトは、GitHub Actionsを使用した自動テストとビルドを提供しています。
+
+#### 通常のCI（.github/workflows/ci.yml）
+
+**トリガー**:
+- `main`, `develop`, `copilot/**` ブランチへのpush
+- `main`, `develop` ブランチへのPull Request
+
+**実行内容**:
+- テスト実行
+- リント実行
+- ビルド実行
+- D1データベース統合テスト
+
+#### Copilot Agent専用ワークフロー（.github/workflows/copilot-setup-steps.yml）
+
+**トリガー**:
+- すべてのブランチへのPull Request
+- 手動実行
+
+**実行内容**:
+- エフェメラル（一時的）テスト環境のセットアップ
+- D1データベースのセットアップとシード
+- テスト、リント、ビルドの実行
+
+### 詳細情報
+
+- **テストガイド**: [TEST_GUIDE.md](./TEST_GUIDE.md) - テスト環境のセットアップと実行方法
+- **CI/CDガイド**: [CI_GUIDE.md](./CI_GUIDE.md) - GitHub Actionsワークフローの詳細
+
 ## サポートとコミュニティ
 
 ### 問題が解決しない場合
@@ -804,6 +864,8 @@ wrangler d1 execute document-reception-db --remote --command="SELECT COUNT(*) FR
   - [システム仕様書](./system_specification.md) - 詳細な技術仕様
   - [コントリビューションガイド](./CONTRIBUTING.md) - 開発参加方法
   - [クイックリファレンス](./QUICK_REFERENCE.md) - よく使うコマンド集
+  - [テストガイド](./TEST_GUIDE.md) - テスト環境のセットアップと実行方法
+  - [CI/CDガイド](./CI_GUIDE.md) - GitHub Actionsワークフローの詳細
 
 - **公式ドキュメント**:
   - [Hono Documentation](https://hono.dev/) - バックエンドフレームワーク
