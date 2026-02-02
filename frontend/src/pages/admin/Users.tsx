@@ -79,7 +79,11 @@ export default function Users() {
       }
 
       if (editing) {
-        const payload: any = { displayName, role, departmentId };
+        const payload: Partial<User> & { password?: string } = { 
+          displayName, 
+          role, 
+          departmentId: departmentId || '' 
+        };
         if (password) payload.password = password;
         await updateUser(editing.id, payload);
       } else {

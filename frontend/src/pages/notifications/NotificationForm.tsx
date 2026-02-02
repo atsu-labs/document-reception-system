@@ -123,13 +123,14 @@ export default function NotificationForm() {
       } else {
         await createMutation.mutateAsync(clean);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       try {
-        if (err?.response) {
-          const body = await err.response.json();
+        if (err && typeof err === 'object' && 'response' in err) {
+          const response = (err as { response: Response }).response;
+          const body = await response.json();
           console.error('API error body:', body);
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
       console.error('Failed to save notification:', err);
