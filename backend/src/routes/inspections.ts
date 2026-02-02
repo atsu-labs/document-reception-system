@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, asc } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { getDB, Env } from '../db/client';
 import { inspections, notifications, users } from '../db/schema';
@@ -59,7 +59,7 @@ inspectionsRouter.get('/notification/:notificationId', async (c) => {
       .select()
       .from(inspections)
       .where(eq(inspections.notificationId, notificationId))
-      .orderBy(inspections.inspectionDate);
+      .orderBy(asc(inspections.inspectionDate));
 
     return c.json(successResponse(inspectionList));
   } catch (error) {
