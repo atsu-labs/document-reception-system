@@ -33,8 +33,10 @@ export const createNotificationTypeSchema = z.object({
   code: z.string().min(1, 'Notification type code is required'),
   name: z.string().min(1, 'Notification type name is required'),
   description: z.string().optional().nullable(),
+  parentGroupId: z.string().uuid().optional().nullable(), // 親グループID
   hasInspection: z.boolean().default(false),
   hasContentField: z.boolean().default(false),
+  requiresAdditionalData: z.boolean().default(false), // 追加データ要否フラグ
   workflowTemplateId: z.string().uuid().optional().nullable(),
   sortOrder: z.number().int().min(0).default(0),
 });
@@ -47,6 +49,7 @@ export const createNotificationSchema = z.object({
   processingDepartmentId: z.string().uuid(),
   propertyName: z.string().optional().nullable(),
   content: z.string().optional().nullable(),
+  additionalData: z.string().optional().nullable(), // 追加データ（JSON文字列）
   inspectionDate: z.string().optional().nullable(),
   inspectionDepartmentId: z.string().uuid().optional().nullable(),
   completionDate: z.string().optional().nullable(),
@@ -60,6 +63,7 @@ export const updateNotificationSchema = z.object({
   processingDepartmentId: z.string().uuid().optional(),
   propertyName: z.string().optional().nullable(),
   content: z.string().optional().nullable(),
+  additionalData: z.string().optional().nullable(), // 追加データ（JSON文字列）
   inspectionDate: z.string().optional().nullable(),
   inspectionDepartmentId: z.string().uuid().optional().nullable(),
   completionDate: z.string().optional().nullable(),
@@ -69,6 +73,28 @@ export const updateNotificationSchema = z.object({
 export const updateStatusSchema = z.object({
   status: z.string().min(1, 'Status is required'),
   comment: z.string().optional().nullable(),
+});
+
+// Inspection validation schemas
+export const createInspectionSchema = z.object({
+  notificationId: z.string().uuid(),
+  inspectionDate: z.string(), // ISO date string
+  inspectionDepartmentId: z.string().uuid(),
+  inspectionType: z.string().optional().nullable(), // 検査種別（例: 中間検査、完了検査など）
+  status: z.string().default('予定'), // 検査ステータス
+  result: z.string().optional().nullable(), // 検査結果
+  notes: z.string().optional().nullable(), // 検査に関する備考
+});
+
+export const updateInspectionSchema = z.object({
+  inspectionDate: z.string().optional(),
+  inspectionDepartmentId: z.string().uuid().optional(),
+  inspectionType: z.string().optional().nullable(),
+  status: z.string().optional(),
+  result: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  inspectedBy: z.string().uuid().optional().nullable(), // 検査実施者
+  inspectedAt: z.string().optional().nullable(), // 検査実施日時
 });
 
 export const listNotificationsQuerySchema = z.object({

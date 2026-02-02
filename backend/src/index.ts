@@ -5,6 +5,7 @@ import auth from "./routes/auth";
 import testRoutes from "./routes/test";
 import notificationsRouter from "./routes/notifications";
 import masterRouter from "./routes/master";
+import inspectionsRouter from "./routes/inspections";
 
 const app = new Hono();
 
@@ -41,6 +42,9 @@ app.route("/api/master", masterRouter);
 
 // Notification routes
 app.route("/api/notifications", notificationsRouter);
+
+// Inspection routes
+app.route("/api/inspections", inspectionsRouter);
 
 // Test routes (for development/testing)
 app.route("/api/test", testRoutes);
