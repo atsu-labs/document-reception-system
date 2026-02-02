@@ -14,6 +14,7 @@ import AdminRoute from './components/AdminRoute';
 import Departments from './pages/admin/Departments';
 import NotificationTypes from './pages/admin/NotificationTypes';
 import Users from './pages/admin/Users';
+import MasterData from './pages/admin/MasterData';
 
 function App() {
   const { loadUserFromToken } = useAuthStore();
@@ -59,6 +60,14 @@ function App() {
             <ProtectedRoute>
               <NotificationForm />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/master-data"
+          element={
+            <AdminRoute>
+              <MasterData />
+            </AdminRoute>
           }
         />
         <Route

@@ -29,8 +29,10 @@ export interface NotificationType {
   code: string;
   name: string;
   description?: string | null;
+  parentGroupId?: string | null;
   hasInspection: boolean;
   hasContentField: boolean;
+  requiresAdditionalData: boolean;
   workflowTemplateId?: string | null;
   isActive: boolean;
   sortOrder: number;
@@ -46,6 +48,7 @@ export interface Notification {
   processingDepartmentId: string;
   propertyName?: string | null;
   content?: string | null;
+  additionalData?: string | null;
   inspectionDate?: string | null;
   inspectionDepartmentId?: string | null;
   completionDate?: string | null;
@@ -83,4 +86,21 @@ export interface NotificationHistory {
   changedBy: string;
   comment?: string | null;
   changedAt: string;
+}
+
+export interface Inspection {
+  id: string;
+  notificationId: string;
+  inspectionDate: string;
+  inspectionDepartmentId: string;
+  inspectionType?: string | null;
+  status: string;
+  result?: string | null;
+  notes?: string | null;
+  inspectedBy?: string | null;
+  inspectedAt?: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  updatedBy: string;
 }
