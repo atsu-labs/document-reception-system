@@ -15,11 +15,13 @@ issue #35（データスキーマ構造見直し）で実装されたバック�
 2. `frontend/src/pages/admin/NotificationTypes.tsx` - 届出種別管理画面の機能拡張とパフォーマンス最適化
 3. `frontend/src/pages/HomePage.tsx` - 管理者セクションの追加
 4. `frontend/src/App.tsx` - ルーティングの更新
+5. `frontend/src/pages/notifications/NotificationDetail.tsx` - 検査管理コンポーネントの統合
 
 ### 新規作成されたファイル
 1. `frontend/src/pages/admin/MasterData.tsx` - マスターデータ統合管理画面
-2. `FRONTEND_IMPLEMENTATION_REPORT.md` - 実装詳細レポート
-3. `UI_SCREENS_DESCRIPTION.md` - UI画面説明
+2. `frontend/src/components/inspections/InspectionList.tsx` - 検査一覧・管理コンポーネント
+3. `FRONTEND_IMPLEMENTATION_REPORT.md` - 実装詳細レポート
+4. `UI_SCREENS_DESCRIPTION.md` - UI画面説明
 
 ## 主要機能の実装状況
 
@@ -66,6 +68,22 @@ issue #35（データスキーマ構造見直し）で実装されたバック�
 
 - [x] `/admin/master-data`ルートの追加
 - [x] AdminRouteによる権限チェックの実装
+
+### 6. 検査管理UI の実装 ✅
+**ファイル**: 
+- `frontend/src/components/inspections/InspectionList.tsx` - 検査一覧・管理コンポーネント
+- `frontend/src/pages/notifications/NotificationDetail.tsx` - 届出詳細画面への統合
+
+- [x] 検査一覧表示機能
+- [x] 検査追加機能（SENIOR/ADMIN権限のみ）
+- [x] 検査編集機能（SENIOR/ADMIN権限のみ）
+- [x] 検査削除機能（SENIOR/ADMIN権限のみ）
+- [x] ステータス管理（予定、実施済み、中止）
+- [x] 結果記録（合格、不合格、条件付き合格）
+- [x] 備考入力機能
+- [x] 権限に応じた表示制御
+- [x] レスポンシブデザイン対応
+- [x] 部署マップのメモ化によるパフォーマンス最適化
 
 ## コードレビュー対応
 
@@ -248,25 +266,25 @@ DELETE /api/inspections/:id
 
 実装した型定義と画面構造により、以下の機能が容易に追加可能です:
 
-### 1. 検査管理機能
-- `Inspection`型を活用した検査一覧画面
-- 検査の作成・編集・削除機能
-- 届出詳細画面への検査一覧の統合
-
-### 2. 追加データ入力機能
+### 1. 追加データ入力機能
 - 届出種別ごとの動的フォーム生成
 - JSON Schemaベースのバリデーション
 - カスタムフィールドのUI生成
 
-### 3. 階層表示機能
+### 2. 階層表示機能
 - 親子関係を持つ届出種別のツリー表示
 - ドラッグ&ドロップによる階層変更
 - 階層構造の視覚化
 
-### 4. 一括操作機能
+### 3. 一括操作機能
 - 複数のマスターデータの一括編集
 - CSVインポート/エクスポート
 - バルク更新API
+
+### 4. 検査管理の拡張機能
+- 検査結果の履歴管理
+- 検査写真のアップロード機能
+- 検査チェックリストテンプレート機能
 
 ## まとめ
 
@@ -274,6 +292,7 @@ DELETE /api/inspections/:id
 ✅ issue #35のバックエンド変更に完全対応
 ✅ マスターデータの一元管理画面を新規作成
 ✅ 管理者向けの操作性を大幅に向上
+✅ 検査管理UIの完全実装
 ✅ 型安全性の確保とTypeScript完全対応
 ✅ 日本語UI・コメントの徹底
 ✅ レスポンシブデザインとアクセシビリティの確保
