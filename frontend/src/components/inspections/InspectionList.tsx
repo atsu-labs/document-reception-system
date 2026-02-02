@@ -110,10 +110,10 @@ export default function InspectionList({ notificationId, departments }: Inspecti
 
   const openCreate = () => {
     resetForm();
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       inspectionDepartmentId: departments[0]?.id || '',
-    });
+    }));
     setDialogOpen(true);
   };
 
@@ -324,6 +324,7 @@ export default function InspectionList({ notificationId, departments }: Inspecti
                 <div>
                   <Label htmlFor="inspectionDepartmentId">検査担当所属 *</Label>
                   <Select
+                    id="inspectionDepartmentId"
                     value={formData.inspectionDepartmentId}
                     onChange={(value) =>
                       setFormData({
@@ -344,6 +345,7 @@ export default function InspectionList({ notificationId, departments }: Inspecti
                 <div>
                   <Label htmlFor="status">ステータス *</Label>
                   <Select
+                    id="status"
                     value={formData.status}
                     onChange={(value) =>
                       setFormData({ ...formData, status: value })
@@ -359,6 +361,7 @@ export default function InspectionList({ notificationId, departments }: Inspecti
                 <div>
                   <Label htmlFor="result">結果</Label>
                   <Select
+                    id="result"
                     value={formData.result}
                     onChange={(value) =>
                       setFormData({ ...formData, result: value })
