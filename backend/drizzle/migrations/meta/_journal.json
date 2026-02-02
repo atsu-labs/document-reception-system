@@ -8,6 +8,13 @@
       "when": 1769088716504,
       "tag": "0000_flawless_blue_blade",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1770017483696,
+      "tag": "0001_jazzy_solo",
+      "breakpoints": true
     }
   ]
 }

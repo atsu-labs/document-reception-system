@@ -89,23 +89,51 @@ async function exportSeed() {
     );
     sqlStatements.push('');
 
-    // 4. 届出種類
+    // 4. 届出種類グループと届出種類
     console.log('📄 届出種類データをエクスポート中...');
+    
+    // 親グループID
+    const notificationTypeGroupIds = {
+      construction: randomUUID(), // 工事関連
+      administrative: randomUUID(), // 事務手続き関連
+    };
+    
     const notificationTypeIds = {
-      construction: randomUUID(),
+      // 工事関連グループ
+      newConstruction: randomUUID(),
       repair: randomUUID(),
+      demolition: randomUUID(),
+      // 事務手続き関連グループ
       inspection: randomUUID(),
+      report: randomUUID(),
     };
 
-    sqlStatements.push('-- Notification Types');
+    sqlStatements.push('-- Notification Type Groups（親グループ）');
     sqlStatements.push(
-      `INSERT INTO notification_types (id, code, name, description, has_inspection, has_content_field, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.construction}', 'NT001', '${escapeSqlString('工事届')}', '${escapeSqlString('建設工事に関する届出')}', 1, 1, '${workflowTemplateId}', 1, 1, datetime('now'), datetime('now'));`
+      `INSERT INTO notification_types (id, code, name, description, parent_group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeGroupIds.construction}', 'NTG001', '${escapeSqlString('工事関連')}', '${escapeSqlString('工事に関する届出グループ')}', NULL, 0, 0, 0, NULL, 1, 1, datetime('now'), datetime('now'));`
     );
     sqlStatements.push(
-      `INSERT INTO notification_types (id, code, name, description, has_inspection, has_content_field, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.repair}', 'NT002', '${escapeSqlString('修繕届')}', '${escapeSqlString('修繕工事に関する届出')}', 1, 1, '${workflowTemplateId}', 1, 2, datetime('now'), datetime('now'));`
+      `INSERT INTO notification_types (id, code, name, description, parent_group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeGroupIds.administrative}', 'NTG002', '${escapeSqlString('事務手続き関連')}', '${escapeSqlString('事務手続きに関する届出グループ')}', NULL, 0, 0, 0, NULL, 1, 2, datetime('now'), datetime('now'));`
+    );
+    sqlStatements.push('');
+
+    sqlStatements.push('-- Notification Types（届出種別）');
+    // 工事関連の届出種別
+    sqlStatements.push(
+      `INSERT INTO notification_types (id, code, name, description, parent_group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.newConstruction}', 'NT001', '${escapeSqlString('新築工事届')}', '${escapeSqlString('新築工事に関する届出')}', '${notificationTypeGroupIds.construction}', 1, 1, 1, '${workflowTemplateId}', 1, 1, datetime('now'), datetime('now'));`
     );
     sqlStatements.push(
-      `INSERT INTO notification_types (id, code, name, description, has_inspection, has_content_field, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.inspection}', 'NT003', '${escapeSqlString('検査依頼')}', '${escapeSqlString('検査に関する依頼')}', 0, 1, '${workflowTemplateId}', 1, 3, datetime('now'), datetime('now'));`
+      `INSERT INTO notification_types (id, code, name, description, parent_group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.repair}', 'NT002', '${escapeSqlString('修繕工事届')}', '${escapeSqlString('修繕工事に関する届出')}', '${notificationTypeGroupIds.construction}', 1, 1, 0, '${workflowTemplateId}', 1, 2, datetime('now'), datetime('now'));`
+    );
+    sqlStatements.push(
+      `INSERT INTO notification_types (id, code, name, description, parent_group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.demolition}', 'NT003', '${escapeSqlString('解体工事届')}', '${escapeSqlString('解体工事に関する届出')}', '${notificationTypeGroupIds.construction}', 1, 1, 1, '${workflowTemplateId}', 1, 3, datetime('now'), datetime('now'));`
+    );
+    // 事務手続き関連の届出種別
+    sqlStatements.push(
+      `INSERT INTO notification_types (id, code, name, description, parent_group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.inspection}', 'NT004', '${escapeSqlString('検査依頼')}', '${escapeSqlString('検査に関する依頼')}', '${notificationTypeGroupIds.administrative}', 0, 1, 0, '${workflowTemplateId}', 1, 4, datetime('now'), datetime('now'));`
+    );
+    sqlStatements.push(
+      `INSERT INTO notification_types (id, code, name, description, parent_group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.report}', 'NT005', '${escapeSqlString('完了報告')}', '${escapeSqlString('工事完了に関する報告')}', '${notificationTypeGroupIds.administrative}', 0, 1, 0, '${workflowTemplateId}', 1, 5, datetime('now'), datetime('now'));`
     );
     sqlStatements.push('');
 
@@ -114,21 +142,68 @@ async function exportSeed() {
     const notificationIds = {
       notification1: randomUUID(),
       notification2: randomUUID(),
+      notification3: randomUUID(),
     };
 
     const today = new Date().toISOString().split('T')[0];
     const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const pastDate = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    // 追加データのサンプル（JSON形式）
+    const additionalDataSample1 = JSON.stringify({
+      buildingStructure: '鉄筋コンクリート造',
+      floors: 3,
+      totalArea: 250.5,
+      constructionCompany: 'ABC建設株式会社',
+      estimatedCost: 50000000,
+    });
+    
+    const additionalDataSample2 = JSON.stringify({
+      demolitionMethod: '機械解体',
+      asbestosPresent: false,
+      estimatedDuration: 30,
+      wasteDisposalPlan: '産業廃棄物処理業者に委託',
+    });
 
     sqlStatements.push('-- Notifications');
+    // 届出1: 新築工事届（追加データあり）
     sqlStatements.push(
-      `INSERT INTO notifications (id, notification_type_id, notification_date, receiving_department_id, processing_department_id, property_name, content, inspection_date, inspection_department_id, completion_date, current_status, created_by, created_at, updated_at, updated_by) VALUES ('${notificationIds.notification1}', '${notificationTypeIds.construction}', '${today}', '${deptIds.general}', '${deptIds.engineering}', '${escapeSqlString('サンプル物件A')}', '${escapeSqlString('新築工事の届出です')}', NULL, NULL, NULL, '${escapeSqlString('受付')}', '${userIds.general}', datetime('now'), datetime('now'), '${userIds.general}');`
+      `INSERT INTO notifications (id, notification_type_id, notification_date, receiving_department_id, processing_department_id, property_name, content, additional_data, inspection_date, inspection_department_id, completion_date, current_status, created_by, created_at, updated_at, updated_by) VALUES ('${notificationIds.notification1}', '${notificationTypeIds.newConstruction}', '${today}', '${deptIds.general}', '${deptIds.engineering}', '${escapeSqlString('サンプル物件A')}', '${escapeSqlString('新築工事の届出です')}', '${escapeSqlString(additionalDataSample1)}', NULL, NULL, NULL, '${escapeSqlString('受付')}', '${userIds.general}', datetime('now'), datetime('now'), '${userIds.general}');`
     );
+    // 届出2: 修繕工事届（追加データなし）
     sqlStatements.push(
-      `INSERT INTO notifications (id, notification_type_id, notification_date, receiving_department_id, processing_department_id, property_name, content, inspection_date, inspection_department_id, completion_date, current_status, created_by, created_at, updated_at, updated_by) VALUES ('${notificationIds.notification2}', '${notificationTypeIds.repair}', '${today}', '${deptIds.general}', '${deptIds.engineering}', '${escapeSqlString('サンプル物件B')}', '${escapeSqlString('外壁修繕の届出です')}', '${futureDate}', '${deptIds.inspection}', NULL, '${escapeSqlString('処理中')}', '${userIds.general}', datetime('now'), datetime('now'), '${userIds.senior}');`
+      `INSERT INTO notifications (id, notification_type_id, notification_date, receiving_department_id, processing_department_id, property_name, content, additional_data, inspection_date, inspection_department_id, completion_date, current_status, created_by, created_at, updated_at, updated_by) VALUES ('${notificationIds.notification2}', '${notificationTypeIds.repair}', '${today}', '${deptIds.general}', '${deptIds.engineering}', '${escapeSqlString('サンプル物件B')}', '${escapeSqlString('外壁修繕の届出です')}', NULL, NULL, NULL, NULL, '${escapeSqlString('処理中')}', '${userIds.general}', datetime('now'), datetime('now'), '${userIds.senior}');`
+    );
+    // 届出3: 解体工事届（追加データあり）
+    sqlStatements.push(
+      `INSERT INTO notifications (id, notification_type_id, notification_date, receiving_department_id, processing_department_id, property_name, content, additional_data, inspection_date, inspection_department_id, completion_date, current_status, created_by, created_at, updated_at, updated_by) VALUES ('${notificationIds.notification3}', '${notificationTypeIds.demolition}', '${pastDate}', '${deptIds.general}', '${deptIds.engineering}', '${escapeSqlString('サンプル物件C')}', '${escapeSqlString('老朽化建物の解体工事')}', '${escapeSqlString(additionalDataSample2)}', NULL, NULL, NULL, '${escapeSqlString('検査')}', '${userIds.general}', datetime('now'), datetime('now'), '${userIds.senior}');`
     );
     sqlStatements.push('');
 
-    // 6. 届出履歴
+    // 6. 検査データ
+    console.log('🔍 検査データをエクスポート中...');
+    const inspectionIds = {
+      inspection1: randomUUID(),
+      inspection2: randomUUID(),
+      inspection3: randomUUID(),
+    };
+
+    sqlStatements.push('-- Inspections');
+    // 届出1に対する検査（中間検査）
+    sqlStatements.push(
+      `INSERT INTO inspections (id, notification_id, inspection_date, inspection_department_id, inspection_type, status, result, notes, inspected_by, inspected_at, created_by, created_at, updated_at, updated_by) VALUES ('${inspectionIds.inspection1}', '${notificationIds.notification1}', '${futureDate}', '${deptIds.inspection}', '${escapeSqlString('中間検査')}', '${escapeSqlString('予定')}', NULL, '${escapeSqlString('基礎工事完了後に実施予定')}', NULL, NULL, '${userIds.senior}', datetime('now'), datetime('now'), '${userIds.senior}');`
+    );
+    // 届出2に対する検査（完了検査）
+    sqlStatements.push(
+      `INSERT INTO inspections (id, notification_id, inspection_date, inspection_department_id, inspection_type, status, result, notes, inspected_by, inspected_at, created_by, created_at, updated_at, updated_by) VALUES ('${inspectionIds.inspection2}', '${notificationIds.notification2}', '${futureDate}', '${deptIds.inspection}', '${escapeSqlString('完了検査')}', '${escapeSqlString('予定')}', NULL, '${escapeSqlString('修繕工事完了後に検査を実施')}', NULL, NULL, '${userIds.senior}', datetime('now'), datetime('now'), '${userIds.senior}');`
+    );
+    // 届出3に対する検査（解体前検査 - 実施済み）
+    sqlStatements.push(
+      `INSERT INTO inspections (id, notification_id, inspection_date, inspection_department_id, inspection_type, status, result, notes, inspected_by, inspected_at, created_by, created_at, updated_at, updated_by) VALUES ('${inspectionIds.inspection3}', '${notificationIds.notification3}', '${pastDate}', '${deptIds.inspection}', '${escapeSqlString('解体前検査')}', '${escapeSqlString('実施済み')}', '${escapeSqlString('合格')}', '${escapeSqlString('アスベストなし、解体作業可')}', '${userIds.senior}', datetime('now'), '${userIds.senior}', datetime('now'), datetime('now'), '${userIds.senior}');`
+    );
+    sqlStatements.push('');
+
+    // 7. 届出履歴
     console.log('📊 届出履歴データをエクスポート中...');
     sqlStatements.push('-- Notification History');
     sqlStatements.push(
@@ -139,6 +214,15 @@ async function exportSeed() {
     );
     sqlStatements.push(
       `INSERT INTO notification_history (id, notification_id, status_from, status_to, changed_by, comment, changed_at) VALUES ('${randomUUID()}', '${notificationIds.notification2}', '${escapeSqlString('受付')}', '${escapeSqlString('処理中')}', '${userIds.senior}', '${escapeSqlString('処理を開始しました')}', datetime('now'));`
+    );
+    sqlStatements.push(
+      `INSERT INTO notification_history (id, notification_id, status_from, status_to, changed_by, comment, changed_at) VALUES ('${randomUUID()}', '${notificationIds.notification3}', NULL, '${escapeSqlString('受付')}', '${userIds.general}', '${escapeSqlString('新規届出受付')}', datetime('now'));`
+    );
+    sqlStatements.push(
+      `INSERT INTO notification_history (id, notification_id, status_from, status_to, changed_by, comment, changed_at) VALUES ('${randomUUID()}', '${notificationIds.notification3}', '${escapeSqlString('受付')}', '${escapeSqlString('処理中')}', '${userIds.senior}', '${escapeSqlString('処理を開始しました')}', datetime('now'));`
+    );
+    sqlStatements.push(
+      `INSERT INTO notification_history (id, notification_id, status_from, status_to, changed_by, comment, changed_at) VALUES ('${randomUUID()}', '${notificationIds.notification3}', '${escapeSqlString('処理中')}', '${escapeSqlString('検査')}', '${userIds.senior}', '${escapeSqlString('検査段階に移行')}', datetime('now'));`
     );
     sqlStatements.push('');
 
