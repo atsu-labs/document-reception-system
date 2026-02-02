@@ -108,14 +108,33 @@ export default function NotificationForm() {
   });
 
   const onSubmit = async (data: NotificationCreateInput) => {
+    // Clean optional fields: send undefined/null instead of empty string for UUID/date optional fields
+    const clean: NotificationCreateInput = {
+      ...data,
+      inspectionDepartmentId: data.inspectionDepartmentId ? data.inspectionDepartmentId : undefined,
+      inspectionDate: data.inspectionDate ? data.inspectionDate : undefined,
+      completionDate: data.completionDate ? data.completionDate : undefined,
+      content: data.content ? data.content : undefined,
+    };
+
     try {
       if (isEditMode) {
-        await updateMutation.mutateAsync(data);
+        await updateMutation.mutateAsync(clean);
       } else {
-        await createMutation.mutateAsync(data);
+        await createMutation.mutateAsync(clean);
       }
-    } catch (error) {
-      console.error('Failed to save notification:', error);
+    } catch (err: unknown) {
+      try {
+        if (err && typeof err === 'object' && 'response' in err) {
+          const response = (err as { response: Response }).response;
+          const body = await response.json();
+          console.error('API error body:', body);
+        }
+      } catch {
+        // ignore
+      }
+      console.error('Failed to save notification:', err);
+      throw err;
     }
   };
 

@@ -10,6 +10,10 @@ import NotificationList from './pages/notifications/NotificationList';
 import NotificationForm from './pages/notifications/NotificationForm';
 import NotificationDetail from './pages/notifications/NotificationDetail';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
+import Departments from './pages/admin/Departments';
+import NotificationTypes from './pages/admin/NotificationTypes';
+import Users from './pages/admin/Users';
 
 function App() {
   const { loadUserFromToken } = useAuthStore();
@@ -55,6 +59,30 @@ function App() {
             <ProtectedRoute>
               <NotificationForm />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/departments"
+          element={
+            <AdminRoute>
+              <Departments />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/notification-types"
+          element={
+            <AdminRoute>
+              <NotificationTypes />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminRoute>
+              <Users />
+            </AdminRoute>
           }
         />
         <Route

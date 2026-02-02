@@ -17,8 +17,13 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
   }, [token, user, isLoading, loadUserFromToken]);
 
+  // If a token exists in localStorage but user is not yet loaded,
+  // show loading state while `loadUserFromToken` runs to avoid
+  // a transient redirect to `/login` on initial render.
+  const localToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
   // Show loading state while checking authentication
-  if (isLoading) {
+  if (isLoading || (!user && localToken)) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
