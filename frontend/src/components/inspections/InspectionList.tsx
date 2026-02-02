@@ -9,7 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import api from '@/lib/api';
 
 interface InspectionListProps {
@@ -30,6 +32,8 @@ export default function InspectionList({ notificationId, departments }: Inspecti
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [inspectionToDelete, setInspectionToDelete] = useState<string | null>(null);
   const [editing, setEditing] = useState<Inspection | null>(null);
   const [formData, setFormData] = useState<InspectionFormData>({
     inspectionDate: '',
@@ -146,9 +150,16 @@ export default function InspectionList({ notificationId, departments }: Inspecti
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('この検査を削除してもよろしいですか？')) return;
-    await deleteMutation.mutateAsync(id);
+  const handleDelete = (id: string) => {
+    setInspectionToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!inspectionToDelete) return;
+    await deleteMutation.mutateAsync(inspectionToDelete);
+    setDeleteDialogOpen(false);
+    setInspectionToDelete(null);
   };
 
   // 権限チェック（SENIOR以上のみ作成・編集・削除可能）
@@ -269,7 +280,7 @@ export default function InspectionList({ notificationId, departments }: Inspecti
 
         {/* 検査追加・編集ダイアログ */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent onClose={() => setDialogOpen(false)}>
+          <DialogContent>
             <form onSubmit={handleSubmit}>
               <DialogHeader>
                 <DialogTitle>{editing ? '検査を編集' : '検査を追加'}</DialogTitle>
@@ -312,14 +323,12 @@ export default function InspectionList({ notificationId, departments }: Inspecti
 
                 <div>
                   <Label htmlFor="inspectionDepartmentId">検査担当所属 *</Label>
-                  <select
-                    id="inspectionDepartmentId"
-                    className="w-full border rounded px-3 py-2"
+                  <Select
                     value={formData.inspectionDepartmentId}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       setFormData({
                         ...formData,
-                        inspectionDepartmentId: e.target.value,
+                        inspectionDepartmentId: value,
                       })
                     }
                     required
@@ -329,41 +338,37 @@ export default function InspectionList({ notificationId, departments }: Inspecti
                         {dept.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 <div>
                   <Label htmlFor="status">ステータス *</Label>
-                  <select
-                    id="status"
-                    className="w-full border rounded px-3 py-2"
+                  <Select
                     value={formData.status}
-                    onChange={(e) =>
-                      setFormData({ ...formData, status: e.target.value })
+                    onChange={(value) =>
+                      setFormData({ ...formData, status: value })
                     }
                     required
                   >
                     <option value="予定">予定</option>
                     <option value="実施済み">実施済み</option>
                     <option value="中止">中止</option>
-                  </select>
+                  </Select>
                 </div>
 
                 <div>
                   <Label htmlFor="result">結果</Label>
-                  <select
-                    id="result"
-                    className="w-full border rounded px-3 py-2"
+                  <Select
                     value={formData.result}
-                    onChange={(e) =>
-                      setFormData({ ...formData, result: e.target.value })
+                    onChange={(value) =>
+                      setFormData({ ...formData, result: value })
                     }
                   >
                     <option value="">-- 選択してください --</option>
                     <option value="合格">合格</option>
                     <option value="不合格">不合格</option>
                     <option value="条件付き合格">条件付き合格</option>
-                  </select>
+                  </Select>
                 </div>
 
                 <div>
@@ -398,6 +403,17 @@ export default function InspectionList({ notificationId, departments }: Inspecti
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* 削除確認ダイアログ */}
+        <ConfirmDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title="検査を削除"
+          description="この検査を削除してもよろしいですか？この操作は取り消せません。"
+          onConfirm={confirmDelete}
+          confirmText="削除"
+          cancelText="キャンセル"
+        />
       </CardContent>
     </Card>
   );
