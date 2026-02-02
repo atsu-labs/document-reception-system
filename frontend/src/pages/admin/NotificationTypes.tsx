@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { fetchNotificationTypes, createNotificationType, updateNotificationType, deleteNotificationType } from '../../lib/masterApi';
 import type { NotificationType } from '../../types';
 import { Button } from '../../components/ui/button';
@@ -45,6 +45,20 @@ export default function NotificationTypes() {
   useEffect(() => {
     load();
   }, []);
+
+  // 親グループのIDから名前へのマップを作成（パフォーマンス最適化）
+  const parentGroupMap = useMemo(() => {
+    const map = new Map<string, string>();
+    items.forEach(item => {
+      map.set(item.id, item.name);
+    });
+    return map;
+  }, [items]);
+
+  // 親グループとして選択可能な届出種別をメモ化（パフォーマンス最適化）
+  const selectableParentGroups = useMemo(() => {
+    return items.filter(t => !t.parentGroupId);
+  }, [items]);
 
   function openCreate() {
     setEditing(null);
@@ -156,7 +170,7 @@ export default function NotificationTypes() {
                 <td className="px-4 py-2">{d.code}</td>
                 <td className="px-4 py-2">{d.name}</td>
                 <td className="px-4 py-2">{d.description}</td>
-                <td className="px-4 py-2">{d.parentGroupId ? items.find(i => i.id === d.parentGroupId)?.name || d.parentGroupId : '-'}</td>
+                <td className="px-4 py-2">{d.parentGroupId ? parentGroupMap.get(d.parentGroupId) || d.parentGroupId : '-'}</td>
                 <td className="px-4 py-2">{d.requiresAdditionalData ? '必要' : '不要'}</td>
                 <td className="px-4 py-2">{d.isActive ? '有効' : '無効'}</td>
                 <td className="px-4 py-2 space-x-2">
@@ -208,7 +222,7 @@ export default function NotificationTypes() {
                 onChange={(e) => setParentGroupId(e.target.value)}
               >
                 <option value="">-- なし --</option>
-                {items.filter(t => !t.parentGroupId).map(t => (
+                {selectableParentGroups.map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
