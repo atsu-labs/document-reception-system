@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { Alert } from '@/components/ui/Alert';
+import InspectionList from '@/components/inspections/InspectionList';
 
 export default function NotificationDetail() {
   const navigate = useNavigate();
@@ -256,32 +257,11 @@ export default function NotificationDetail() {
       </Card>
 
       {/* Inspection Information */}
-      {notificationType?.hasInspection && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>検査情報</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>検査日</Label>
-                <div className="mt-1">
-                  {notification.inspectionDate
-                    ? format(new Date(notification.inspectionDate), 'yyyy年MM月dd日')
-                    : '-'}
-                </div>
-              </div>
-              <div>
-                <Label>検査所属</Label>
-                <div className="mt-1">
-                  {notification.inspectionDepartmentId
-                    ? departmentMap[notification.inspectionDepartmentId] || notification.inspectionDepartmentId
-                    : '-'}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {notificationType?.hasInspection && departments && (
+        <InspectionList 
+          notificationId={notification.id} 
+          departments={departments}
+        />
       )}
 
       {/* Completion Information */}
