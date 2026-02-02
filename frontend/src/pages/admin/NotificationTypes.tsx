@@ -77,7 +77,7 @@ export default function NotificationTypes() {
     setName(t.name);
     setDescription(t.description || '');
     setParentGroupId(t.parentGroupId || '');
-    setRequiresAdditionalData(t.requiresAdditionalData || false);
+    setRequiresAdditionalData(t.requiresAdditionalData ?? false);
     setIsActive(t.isActive);
     setDialogOpen(true);
   }
@@ -170,7 +170,7 @@ export default function NotificationTypes() {
                 <td className="px-4 py-2">{d.code}</td>
                 <td className="px-4 py-2">{d.name}</td>
                 <td className="px-4 py-2">{d.description}</td>
-                <td className="px-4 py-2">{d.parentGroupId ? parentGroupMap.get(d.parentGroupId) || d.parentGroupId : '-'}</td>
+                <td className="px-4 py-2">{d.parentGroupId ? (parentGroupMap.get(d.parentGroupId) || '(不明)') : '-'}</td>
                 <td className="px-4 py-2">{d.requiresAdditionalData ? '必要' : '不要'}</td>
                 <td className="px-4 py-2">{d.isActive ? '有効' : '無効'}</td>
                 <td className="px-4 py-2 space-x-2">
