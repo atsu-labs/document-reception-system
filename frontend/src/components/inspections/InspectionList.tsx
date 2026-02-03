@@ -326,10 +326,10 @@ export default function InspectionList({ notificationId, departments }: Inspecti
                   <Select
                     id="inspectionDepartmentId"
                     value={formData.inspectionDepartmentId}
-                    onChange={(value) =>
+                    onChange={(e) =>
                       setFormData({
                         ...formData,
-                        inspectionDepartmentId: value,
+                        inspectionDepartmentId: e.target.value,
                       })
                     }
                     required
@@ -347,8 +347,8 @@ export default function InspectionList({ notificationId, departments }: Inspecti
                   <Select
                     id="status"
                     value={formData.status}
-                    onChange={(value) =>
-                      setFormData({ ...formData, status: value })
+                    onChange={(e) =>
+                      setFormData({ ...formData, status: e.target.value })
                     }
                     required
                   >
@@ -363,8 +363,8 @@ export default function InspectionList({ notificationId, departments }: Inspecti
                   <Select
                     id="result"
                     value={formData.result}
-                    onChange={(value) =>
-                      setFormData({ ...formData, result: value })
+                    onChange={(e) =>
+                      setFormData({ ...formData, result: e.target.value })
                     }
                   >
                     <option value="">-- 選択してください --</option>
