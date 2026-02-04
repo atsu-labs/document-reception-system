@@ -13,7 +13,7 @@ env:
   PNPM_VERSION: '9'
 
 jobs:
-  setup-and-test:
+  copilot-setup-steps:
     name: Setup D1 Database and Run Tests
     runs-on: ubuntu-latest
     
