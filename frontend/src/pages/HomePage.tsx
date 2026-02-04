@@ -153,6 +153,83 @@ export default function HomePage() {
           </button>
         </div>
 
+        {/* Admin section - Only for admin users */}
+        {user?.role === 'ADMIN' && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-slate-900 mb-4">管理者機能</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button
+                type="button"
+                onClick={() => navigate('/admin/master-data')}
+                className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 text-left hover:shadow-md transition-shadow group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-slate-900">マスターデータ管理</h3>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-6 h-6 text-purple-600 group-hover:translate-x-1 transition-transform"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </div>
+                <p className="text-sm text-slate-600">
+                  届出種別・部署・ユーザーの管理
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate('/admin/departments')}
+                className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 text-left hover:shadow-md transition-shadow group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-slate-900">部署管理</h3>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-6 h-6 text-green-600 group-hover:translate-x-1 transition-transform"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </div>
+                <p className="text-sm text-slate-600">
+                  部署の作成・編集・削除
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate('/admin/users')}
+                className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 text-left hover:shadow-md transition-shadow group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-slate-900">ユーザー管理</h3>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-6 h-6 text-blue-600 group-hover:translate-x-1 transition-transform"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </div>
+                <p className="text-sm text-slate-600">
+                  ユーザーの作成・編集・削除
+                </p>
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
           <h2 className="text-xl font-semibold text-slate-900 mb-6">
             ログイン情報

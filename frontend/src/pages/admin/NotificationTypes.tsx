@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { fetchNotificationTypes, createNotificationType, updateNotificationType, deleteNotificationType } from '../../lib/masterApi';
 import type { NotificationType } from '../../types';
 import { Button } from '../../components/ui/button';
@@ -24,6 +24,8 @@ export default function NotificationTypes() {
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [parentGroupId, setParentGroupId] = useState<string>('');
+  const [requiresAdditionalData, setRequiresAdditionalData] = useState(false);
   const [isActive, setIsActive] = useState(true);
 
   async function load() {
@@ -44,11 +46,27 @@ export default function NotificationTypes() {
     load();
   }, []);
 
+  // 親グループのIDから名前へのマップを作成（パフォーマンス最適化）
+  const parentGroupMap = useMemo(() => {
+    const map = new Map<string, string>();
+    items.forEach(item => {
+      map.set(item.id, item.name);
+    });
+    return map;
+  }, [items]);
+
+  // 親グループとして選択可能な届出種別をメモ化（パフォーマンス最適化）
+  const selectableParentGroups = useMemo(() => {
+    return items.filter(t => !t.parentGroupId);
+  }, [items]);
+
   function openCreate() {
     setEditing(null);
     setCode(`NT${Date.now()}`);
     setName('');
     setDescription('');
+    setParentGroupId('');
+    setRequiresAdditionalData(false);
     setIsActive(true);
     setDialogOpen(true);
   }
@@ -58,6 +76,8 @@ export default function NotificationTypes() {
     setCode(t.code);
     setName(t.name);
     setDescription(t.description || '');
+    setParentGroupId(t.parentGroupId || '');
+    setRequiresAdditionalData(t.requiresAdditionalData ?? false);
     setIsActive(t.isActive);
     setDialogOpen(true);
   }
@@ -72,9 +92,23 @@ export default function NotificationTypes() {
       }
 
       if (editing) {
-        await updateNotificationType(editing.id, { code, name, description, isActive });
+        await updateNotificationType(editing.id, { 
+          code, 
+          name, 
+          description, 
+          parentGroupId: parentGroupId || null,
+          requiresAdditionalData,
+          isActive 
+        });
       } else {
-        await createNotificationType({ code, name, description, isActive });
+        await createNotificationType({ 
+          code, 
+          name, 
+          description,
+          parentGroupId: parentGroupId || null,
+          requiresAdditionalData,
+          isActive 
+        });
       }
 
       setDialogOpen(false);
@@ -124,6 +158,8 @@ export default function NotificationTypes() {
               <th className="text-left px-4 py-2">コード</th>
               <th className="text-left px-4 py-2">名前</th>
               <th className="text-left px-4 py-2">説明</th>
+              <th className="text-left px-4 py-2">親グループ</th>
+              <th className="text-left px-4 py-2">追加データ</th>
               <th className="text-left px-4 py-2">状態</th>
               <th className="text-left px-4 py-2">操作</th>
             </tr>
@@ -134,6 +170,8 @@ export default function NotificationTypes() {
                 <td className="px-4 py-2">{d.code}</td>
                 <td className="px-4 py-2">{d.name}</td>
                 <td className="px-4 py-2">{d.description}</td>
+                <td className="px-4 py-2">{d.parentGroupId ? (parentGroupMap.get(d.parentGroupId) || '(不明)') : '-'}</td>
+                <td className="px-4 py-2">{d.requiresAdditionalData ? '必要' : '不要'}</td>
                 <td className="px-4 py-2">{d.isActive ? '有効' : '無効'}</td>
                 <td className="px-4 py-2 space-x-2">
                   <Button variant="outline" size="sm" onClick={() => openEdit(d)}>
@@ -147,7 +185,7 @@ export default function NotificationTypes() {
             ))}
             {items.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                <td colSpan={7} className="px-4 py-6 text-center text-sm text-muted-foreground">
                   届出種類が見つかりません
                 </td>
               </tr>
@@ -175,6 +213,28 @@ export default function NotificationTypes() {
             <div>
               <Label>説明</Label>
               <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+            </div>
+            <div>
+              <Label>親グループID（任意）</Label>
+              <select 
+                className="w-full border rounded px-3 py-2"
+                value={parentGroupId} 
+                onChange={(e) => setParentGroupId(e.target.value)}
+              >
+                <option value="">-- なし --</option>
+                {selectableParentGroups.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <input 
+                id="nt-req-additional" 
+                type="checkbox" 
+                checked={requiresAdditionalData} 
+                onChange={(e) => setRequiresAdditionalData(e.target.checked)} 
+              />
+              <Label htmlFor="nt-req-additional">追加データ必要</Label>
             </div>
             <div className="flex items-center gap-2">
               <input id="nt-active" type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
