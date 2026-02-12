@@ -56,6 +56,7 @@ export default function NotificationForm() {
       processingDepartmentId: '',
       propertyName: '',
       content: '',
+      additionalData: '',
       inspectionDate: '',
       inspectionDepartmentId: '',
       completionDate: '',
@@ -79,6 +80,7 @@ export default function NotificationForm() {
         processingDepartmentId: notification.processingDepartmentId,
         propertyName: notification.propertyName || '',
         content: notification.content || '',
+        additionalData: notification.additionalData || '',
         inspectionDate: notification.inspectionDate || '',
         inspectionDepartmentId: notification.inspectionDepartmentId || '',
         completionDate: notification.completionDate || '',
@@ -115,6 +117,7 @@ export default function NotificationForm() {
       inspectionDate: data.inspectionDate ? data.inspectionDate : undefined,
       completionDate: data.completionDate ? data.completionDate : undefined,
       content: data.content ? data.content : undefined,
+      additionalData: data.additionalData ? data.additionalData : undefined,
     };
 
     try {
@@ -284,6 +287,27 @@ export default function NotificationForm() {
                     {errors.content.message}
                   </p>
                 )}
+              </div>
+            )}
+
+            {selectedNotificationType?.requiresAdditionalData && (
+              <div>
+                <Label htmlFor="additionalData">追加データ</Label>
+                <Textarea
+                  id="additionalData"
+                  {...register('additionalData')}
+                  placeholder="追加データをJSON形式で入力（例: {&quot;key&quot;: &quot;value&quot;}）"
+                  rows={4}
+                  disabled={isSubmitting}
+                />
+                {errors.additionalData && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.additionalData.message}
+                  </p>
+                )}
+                <p className="text-sm text-muted-foreground mt-1">
+                  JSON形式で追加データを入力してください
+                </p>
               </div>
             )}
 

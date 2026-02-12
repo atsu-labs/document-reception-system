@@ -253,6 +253,26 @@ export default function NotificationDetail() {
               </div>
             </div>
           )}
+
+          {notificationType?.requiresAdditionalData && notification.additionalData && (
+            <div>
+              <Label>追加データ</Label>
+              <div className="mt-1">
+                <pre className="bg-muted p-3 rounded-md overflow-x-auto text-sm">
+                  {(() => {
+                    try {
+                      // JSON形式で整形して表示
+                      const parsed = JSON.parse(notification.additionalData);
+                      return JSON.stringify(parsed, null, 2);
+                    } catch {
+                      // JSONパースに失敗した場合はそのまま表示
+                      return notification.additionalData;
+                    }
+                  })()}
+                </pre>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
