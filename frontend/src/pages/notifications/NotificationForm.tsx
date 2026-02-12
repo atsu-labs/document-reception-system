@@ -296,7 +296,7 @@ export default function NotificationForm() {
                 <Textarea
                   id="additionalData"
                   {...register('additionalData')}
-                  placeholder="追加データをJSON形式で入力（例: {&quot;key&quot;: &quot;value&quot;}）"
+                  placeholder='追加データをJSON形式で入力（例: {"key": "value"}）'
                   rows={4}
                   disabled={isSubmitting}
                 />

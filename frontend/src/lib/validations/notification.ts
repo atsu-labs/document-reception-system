@@ -8,7 +8,19 @@ export const notificationCreateSchema = z.object({
   processingDepartmentId: z.string().min(1, '処理所属を選択してください'),
   propertyName: z.string().optional(),
   content: z.string().optional(),
-  additionalData: z.string().optional(),
+  additionalData: z.string().optional().refine((val) => {
+    // 空文字列またはundefinedの場合は有効
+    if (!val || val.trim() === '') return true;
+    // JSON形式のバリデーション
+    try {
+      JSON.parse(val);
+      return true;
+    } catch {
+      return false;
+    }
+  }, {
+    message: '有効なJSON形式で入力してください',
+  }),
   inspectionDate: z.string().optional(),
   inspectionDepartmentId: z.string().optional(),
   completionDate: z.string().optional(),
@@ -25,7 +37,19 @@ export const notificationUpdateSchema = z.object({
   processingDepartmentId: z.string().optional(),
   propertyName: z.string().optional(),
   content: z.string().optional(),
-  additionalData: z.string().optional(),
+  additionalData: z.string().optional().refine((val) => {
+    // 空文字列またはundefinedの場合は有効
+    if (!val || val.trim() === '') return true;
+    // JSON形式のバリデーション
+    try {
+      JSON.parse(val);
+      return true;
+    } catch {
+      return false;
+    }
+  }, {
+    message: '有効なJSON形式で入力してください',
+  }),
   inspectionDate: z.string().optional(),
   inspectionDepartmentId: z.string().optional(),
   completionDate: z.string().optional(),
