@@ -65,9 +65,15 @@ export default function NotificationTypes() {
     setCode(`NT${Date.now()}`);
     setName('');
     setDescription('');
+    // グループが存在する場合のみデフォルト値を設定
     setGroupId(groups.length > 0 ? groups[0].id : '');
     setRequiresAdditionalData(false);
     setIsActive(true);
+    // グループが存在しない場合はエラーメッセージを表示
+    if (groups.length === 0) {
+      setError('届出種別を作成する前に、まず届出グループを作成してください');
+      return;
+    }
     setDialogOpen(true);
   }
 
