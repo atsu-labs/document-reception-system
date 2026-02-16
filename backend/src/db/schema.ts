@@ -26,13 +26,26 @@ export const departments = sqliteTable('departments', {
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });
 
+// Notification groups table
+// 届出グループ専用テーブル
+export const notificationGroups = sqliteTable('notification_groups', {
+  id: text('id').primaryKey(),
+  code: text('code').notNull().unique(),
+  name: text('name').notNull(),
+  description: text('description'),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+});
+
 // Notification types table
 export const notificationTypes = sqliteTable('notification_types', {
   id: text('id').primaryKey(),
   code: text('code').notNull().unique(),
   name: text('name').notNull(),
   description: text('description'),
-  parentGroupId: text('parent_group_id'), // 親グループID（届出種別の分類用）
+  groupId: text('group_id').notNull().references(() => notificationGroups.id), // 届出グループID（必須）
   hasInspection: integer('has_inspection', { mode: 'boolean' }).notNull().default(false),
   hasContentField: integer('has_content_field', { mode: 'boolean' }).notNull().default(false),
   requiresAdditionalData: integer('requires_additional_data', { mode: 'boolean' }).notNull().default(false), // 追加データ要否フラグ

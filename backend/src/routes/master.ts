@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
 import { getDB, Env } from '../db/client';
-import { departments, notificationTypes, users } from '../db/schema';
+import { departments, notificationGroups, notificationTypes, users } from '../db/schema';
 import { successResponse, errorResponse } from '../utils/response';
 import { authMiddleware, getAuthUser } from '../middleware/auth';
 import { requireAdmin } from '../middleware/permission';
 import { zValidator } from '@hono/zod-validator';
-import { createDepartmentSchema, createNotificationTypeSchema, createUserSchema } from '../utils/validation';
+import { createDepartmentSchema, createNotificationGroupSchema, createNotificationTypeSchema, createUserSchema } from '../utils/validation';
 import { randomUUID } from 'crypto';
 import { hashPassword } from '../utils/password';
 import { getCurrentTimestamp } from '../utils/timestamp';
@@ -36,6 +36,31 @@ masterRouter.get('/departments', async (c) => {
     console.error('Get departments error:', error);
     return c.json(
       errorResponse('INTERNAL_ERROR', 'Failed to fetch departments'),
+      500
+    );
+  }
+});
+
+/**
+ * GET /api/master/notification-groups
+ * Get all active notification groups
+ * Access: All authenticated users
+ */
+masterRouter.get('/notification-groups', async (c) => {
+  const db = getDB(c.env as Env);
+
+  try {
+    const allGroups = await db
+      .select()
+      .from(notificationGroups)
+      .where(eq(notificationGroups.isActive, true))
+      .orderBy(notificationGroups.sortOrder);
+
+    return c.json(successResponse(allGroups));
+  } catch (error) {
+    console.error('Get notification groups error:', error);
+    return c.json(
+      errorResponse('INTERNAL_ERROR', 'Failed to fetch notification groups'),
       500
     );
   }
@@ -163,6 +188,101 @@ masterRouter.delete('/departments/:id', requireAdmin, async (c) => {
 });
 
 /**
+ * CRUD for Notification Groups (admin only for write operations)
+ */
+masterRouter.post(
+  '/notification-groups',
+  requireAdmin,
+  zValidator('json', createNotificationGroupSchema),
+  async (c) => {
+    const db = getDB(c.env as Env);
+    const data = c.req.valid('json');
+
+    try {
+      const id = randomUUID();
+      const now = getCurrentTimestamp();
+
+      await db.insert(notificationGroups).values({
+        id,
+        code: data.code,
+        name: data.name,
+        description: data.description ?? null,
+        sortOrder: data.sortOrder ?? 0,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      const [created] = await db.select().from(notificationGroups).where(eq(notificationGroups.id, id)).limit(1);
+      return c.json(successResponse(created), 201);
+    } catch (error) {
+      console.error('Create notification group error:', error);
+      return c.json(errorResponse('INTERNAL_ERROR', 'Failed to create notification group'), 500);
+    }
+  }
+);
+
+masterRouter.get('/notification-groups/:id', async (c) => {
+  const db = getDB(c.env as Env);
+  const id = c.req.param('id');
+
+  try {
+    const [item] = await db.select().from(notificationGroups).where(eq(notificationGroups.id, id)).limit(1);
+    if (!item) {
+      return c.json(errorResponse('NOT_FOUND', 'Notification group not found'), 404);
+    }
+    return c.json(successResponse(item));
+  } catch (error) {
+    console.error('Get notification group error:', error);
+    return c.json(errorResponse('INTERNAL_ERROR', 'Failed to fetch notification group'), 500);
+  }
+});
+
+masterRouter.put(
+  '/notification-groups/:id',
+  requireAdmin,
+  zValidator('json', createNotificationGroupSchema),
+  async (c) => {
+    const db = getDB(c.env as Env);
+    const id = c.req.param('id');
+    const data = c.req.valid('json');
+
+    try {
+      const now = getCurrentTimestamp();
+      await db
+        .update(notificationGroups)
+        .set({
+          code: data.code,
+          name: data.name,
+          description: data.description ?? null,
+          sortOrder: data.sortOrder ?? 0,
+          updatedAt: now,
+        })
+        .where(eq(notificationGroups.id, id));
+
+      const [updated] = await db.select().from(notificationGroups).where(eq(notificationGroups.id, id)).limit(1);
+      return c.json(successResponse(updated));
+    } catch (error) {
+      console.error('Update notification group error:', error);
+      return c.json(errorResponse('INTERNAL_ERROR', 'Failed to update notification group'), 500);
+    }
+  }
+);
+
+masterRouter.delete('/notification-groups/:id', requireAdmin, async (c) => {
+  const db = getDB(c.env as Env);
+  const id = c.req.param('id');
+
+  try {
+    const now = getCurrentTimestamp();
+    await db.update(notificationGroups).set({ isActive: false, updatedAt: now }).where(eq(notificationGroups.id, id));
+    return c.json(successResponse({ id }));
+  } catch (error) {
+    console.error('Delete notification group error:', error);
+    return c.json(errorResponse('INTERNAL_ERROR', 'Failed to delete notification group'), 500);
+  }
+});
+
+/**
  * CRUD for Notification Types (admin only for write operations)
  */
 masterRouter.post(
@@ -182,7 +302,7 @@ masterRouter.post(
         code: data.code,
         name: data.name,
         description: data.description ?? null,
-        parentGroupId: data.parentGroupId ?? null,
+        groupId: data.groupId,
         hasInspection: !!data.hasInspection,
         hasContentField: !!data.hasContentField,
         requiresAdditionalData: !!data.requiresAdditionalData,
@@ -234,7 +354,7 @@ masterRouter.put(
           code: data.code,
           name: data.name,
           description: data.description ?? null,
-          parentGroupId: data.parentGroupId ?? null,
+          groupId: data.groupId,
           hasInspection: !!data.hasInspection,
           hasContentField: !!data.hasContentField,
           requiresAdditionalData: !!data.requiresAdditionalData,

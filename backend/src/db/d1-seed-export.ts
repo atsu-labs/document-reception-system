@@ -89,51 +89,51 @@ async function exportSeed() {
     );
     sqlStatements.push('');
 
-    // 4. 届出種類グループと届出種類
-    console.log('📄 届出種類データをエクスポート中...');
+    // 4. 届出グループと届出種類
+    console.log('📄 届出グループと届出種類データをエクスポート中...');
     
-    // 親グループID
-    const notificationTypeGroupIds = {
+    // 届出グループID
+    const notificationGroupIds = {
       construction: randomUUID(), // 工事関連
       administrative: randomUUID(), // 事務手続き関連
     };
     
     const notificationTypeIds = {
-      // 工事関連グループ
+      // 工事関連グループの届出種別
       newConstruction: randomUUID(),
       repair: randomUUID(),
       demolition: randomUUID(),
-      // 事務手続き関連グループ
+      // 事務手続き関連グループの届出種別
       inspection: randomUUID(),
       report: randomUUID(),
     };
 
-    sqlStatements.push('-- Notification Type Groups（親グループ）');
+    sqlStatements.push('-- Notification Groups（届出グループ）');
     sqlStatements.push(
-      `INSERT INTO notification_types (id, code, name, description, parent_group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeGroupIds.construction}', 'NTG001', '${escapeSqlString('工事関連')}', '${escapeSqlString('工事に関する届出グループ')}', NULL, 0, 0, 0, NULL, 1, 1, datetime('now'), datetime('now'));`
+      `INSERT INTO notification_groups (id, code, name, description, is_active, sort_order, created_at, updated_at) VALUES ('${notificationGroupIds.construction}', 'NTG001', '${escapeSqlString('工事関連')}', '${escapeSqlString('工事に関する届出グループ')}', 1, 1, datetime('now'), datetime('now'));`
     );
     sqlStatements.push(
-      `INSERT INTO notification_types (id, code, name, description, parent_group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeGroupIds.administrative}', 'NTG002', '${escapeSqlString('事務手続き関連')}', '${escapeSqlString('事務手続きに関する届出グループ')}', NULL, 0, 0, 0, NULL, 1, 2, datetime('now'), datetime('now'));`
+      `INSERT INTO notification_groups (id, code, name, description, is_active, sort_order, created_at, updated_at) VALUES ('${notificationGroupIds.administrative}', 'NTG002', '${escapeSqlString('事務手続き関連')}', '${escapeSqlString('事務手続きに関する届出グループ')}', 1, 2, datetime('now'), datetime('now'));`
     );
     sqlStatements.push('');
 
     sqlStatements.push('-- Notification Types（届出種別）');
     // 工事関連の届出種別
     sqlStatements.push(
-      `INSERT INTO notification_types (id, code, name, description, parent_group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.newConstruction}', 'NT001', '${escapeSqlString('新築工事届')}', '${escapeSqlString('新築工事に関する届出')}', '${notificationTypeGroupIds.construction}', 1, 1, 1, '${workflowTemplateId}', 1, 1, datetime('now'), datetime('now'));`
+      `INSERT INTO notification_types (id, code, name, description, group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.newConstruction}', 'NT001', '${escapeSqlString('新築工事届')}', '${escapeSqlString('新築工事に関する届出')}', '${notificationGroupIds.construction}', 1, 1, 1, '${workflowTemplateId}', 1, 1, datetime('now'), datetime('now'));`
     );
     sqlStatements.push(
-      `INSERT INTO notification_types (id, code, name, description, parent_group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.repair}', 'NT002', '${escapeSqlString('修繕工事届')}', '${escapeSqlString('修繕工事に関する届出')}', '${notificationTypeGroupIds.construction}', 1, 1, 0, '${workflowTemplateId}', 1, 2, datetime('now'), datetime('now'));`
+      `INSERT INTO notification_types (id, code, name, description, group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.repair}', 'NT002', '${escapeSqlString('修繕工事届')}', '${escapeSqlString('修繕工事に関する届出')}', '${notificationGroupIds.construction}', 1, 1, 0, '${workflowTemplateId}', 1, 2, datetime('now'), datetime('now'));`
     );
     sqlStatements.push(
-      `INSERT INTO notification_types (id, code, name, description, parent_group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.demolition}', 'NT003', '${escapeSqlString('解体工事届')}', '${escapeSqlString('解体工事に関する届出')}', '${notificationTypeGroupIds.construction}', 1, 1, 1, '${workflowTemplateId}', 1, 3, datetime('now'), datetime('now'));`
+      `INSERT INTO notification_types (id, code, name, description, group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.demolition}', 'NT003', '${escapeSqlString('解体工事届')}', '${escapeSqlString('解体工事に関する届出')}', '${notificationGroupIds.construction}', 1, 1, 1, '${workflowTemplateId}', 1, 3, datetime('now'), datetime('now'));`
     );
     // 事務手続き関連の届出種別
     sqlStatements.push(
-      `INSERT INTO notification_types (id, code, name, description, parent_group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.inspection}', 'NT004', '${escapeSqlString('検査依頼')}', '${escapeSqlString('検査に関する依頼')}', '${notificationTypeGroupIds.administrative}', 0, 1, 0, '${workflowTemplateId}', 1, 4, datetime('now'), datetime('now'));`
+      `INSERT INTO notification_types (id, code, name, description, group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.inspection}', 'NT004', '${escapeSqlString('検査依頼')}', '${escapeSqlString('検査に関する依頼')}', '${notificationGroupIds.administrative}', 0, 1, 0, '${workflowTemplateId}', 1, 4, datetime('now'), datetime('now'));`
     );
     sqlStatements.push(
-      `INSERT INTO notification_types (id, code, name, description, parent_group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.report}', 'NT005', '${escapeSqlString('完了報告')}', '${escapeSqlString('工事完了に関する報告')}', '${notificationTypeGroupIds.administrative}', 0, 1, 0, '${workflowTemplateId}', 1, 5, datetime('now'), datetime('now'));`
+      `INSERT INTO notification_types (id, code, name, description, group_id, has_inspection, has_content_field, requires_additional_data, workflow_template_id, is_active, sort_order, created_at, updated_at) VALUES ('${notificationTypeIds.report}', 'NT005', '${escapeSqlString('完了報告')}', '${escapeSqlString('工事完了に関する報告')}', '${notificationGroupIds.administrative}', 0, 1, 0, '${workflowTemplateId}', 1, 5, datetime('now'), datetime('now'));`
     );
     sqlStatements.push('');
 
