@@ -28,12 +28,20 @@ export const createDepartmentSchema = z.object({
   sortOrder: z.number().int().min(0).default(0),
 });
 
+// Notification group validation schemas
+export const createNotificationGroupSchema = z.object({
+  code: z.string().min(1, 'Notification group code is required'),
+  name: z.string().min(1, 'Notification group name is required'),
+  description: z.string().optional().nullable(),
+  sortOrder: z.number().int().min(0).default(0),
+});
+
 // Notification type validation schemas
 export const createNotificationTypeSchema = z.object({
   code: z.string().min(1, 'Notification type code is required'),
   name: z.string().min(1, 'Notification type name is required'),
   description: z.string().optional().nullable(),
-  parentGroupId: z.string().uuid().optional().nullable(), // 親グループID
+  groupId: z.string().uuid(), // 届出グループID（必須）
   hasInspection: z.boolean().default(false),
   hasContentField: z.boolean().default(false),
   requiresAdditionalData: z.boolean().default(false), // 追加データ要否フラグ

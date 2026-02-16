@@ -24,12 +24,23 @@ export interface Department {
   updatedAt: string;
 }
 
+export interface NotificationGroup {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface NotificationType {
   id: string;
   code: string;
   name: string;
   description?: string | null;
-  parentGroupId?: string | null;
+  groupId: string; // 届出グループID（必須）
   hasInspection: boolean;
   hasContentField: boolean;
   requiresAdditionalData: boolean;

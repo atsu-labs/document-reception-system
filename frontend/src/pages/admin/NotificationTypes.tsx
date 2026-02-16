@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
-import { fetchNotificationTypes, createNotificationType, updateNotificationType, deleteNotificationType } from '../../lib/masterApi';
-import type { NotificationType } from '../../types';
+import { fetchNotificationGroups, fetchNotificationTypes, createNotificationType, updateNotificationType, deleteNotificationType } from '../../lib/masterApi';
+import type { NotificationGroup, NotificationType } from '../../types';
 import { Button } from '../../components/ui/button';
 import {
   Dialog,
@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from '../../components/ui/Alert';
 
 export default function NotificationTypes() {
   const [items, setItems] = useState<NotificationType[]>([]);
+  const [groups, setGroups] = useState<NotificationGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +25,7 @@ export default function NotificationTypes() {
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [parentGroupId, setParentGroupId] = useState<string>('');
+  const [groupId, setGroupId] = useState<string>('');
   const [requiresAdditionalData, setRequiresAdditionalData] = useState(false);
   const [isActive, setIsActive] = useState(true);
 
@@ -32,11 +33,15 @@ export default function NotificationTypes() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetchNotificationTypes();
-      setItems(res || []);
+      const [typesRes, groupsRes] = await Promise.all([
+        fetchNotificationTypes(),
+        fetchNotificationGroups()
+      ]);
+      setItems(typesRes || []);
+      setGroups(groupsRes || []);
     } catch (e) {
       console.error(e);
-      setError('届出種類の取得に失敗しました');
+      setError('届出種別と届出グループの取得に失敗しました');
     } finally {
       setLoading(false);
     }
@@ -46,28 +51,29 @@ export default function NotificationTypes() {
     load();
   }, []);
 
-  // 親グループのIDから名前へのマップを作成（パフォーマンス最適化）
-  const parentGroupMap = useMemo(() => {
+  // グループIDから名前へのマップを作成（パフォーマンス最適化）
+  const groupMap = useMemo(() => {
     const map = new Map<string, string>();
-    items.forEach(item => {
-      map.set(item.id, item.name);
+    groups.forEach(group => {
+      map.set(group.id, group.name);
     });
     return map;
-  }, [items]);
-
-  // 親グループとして選択可能な届出種別をメモ化（パフォーマンス最適化）
-  const selectableParentGroups = useMemo(() => {
-    return items.filter(t => !t.parentGroupId);
-  }, [items]);
+  }, [groups]);
 
   function openCreate() {
     setEditing(null);
     setCode(`NT${Date.now()}`);
     setName('');
     setDescription('');
-    setParentGroupId('');
+    // グループが存在する場合のみデフォルト値を設定
+    setGroupId(groups.length > 0 ? groups[0].id : '');
     setRequiresAdditionalData(false);
     setIsActive(true);
+    // グループが存在しない場合はエラーメッセージを表示
+    if (groups.length === 0) {
+      setError('届出種別を作成する前に、まず届出グループを作成してください');
+      return;
+    }
     setDialogOpen(true);
   }
 
@@ -76,7 +82,7 @@ export default function NotificationTypes() {
     setCode(t.code);
     setName(t.name);
     setDescription(t.description || '');
-    setParentGroupId(t.parentGroupId || '');
+    setGroupId(t.groupId);
     setRequiresAdditionalData(t.requiresAdditionalData ?? false);
     setIsActive(t.isActive);
     setDialogOpen(true);
@@ -86,8 +92,8 @@ export default function NotificationTypes() {
     setLoading(true);
     setError(null);
     try {
-      if (!code || !name) {
-        setError('コードと名前は必須です');
+      if (!code || !name || !groupId) {
+        setError('コード、名前、届出グループは必須です');
         return;
       }
 
@@ -96,7 +102,7 @@ export default function NotificationTypes() {
           code, 
           name, 
           description, 
-          parentGroupId: parentGroupId || null,
+          groupId,
           requiresAdditionalData,
           isActive 
         });
@@ -105,7 +111,7 @@ export default function NotificationTypes() {
           code, 
           name, 
           description,
-          parentGroupId: parentGroupId || null,
+          groupId,
           requiresAdditionalData,
           isActive 
         });
@@ -158,7 +164,7 @@ export default function NotificationTypes() {
               <th className="text-left px-4 py-2">コード</th>
               <th className="text-left px-4 py-2">名前</th>
               <th className="text-left px-4 py-2">説明</th>
-              <th className="text-left px-4 py-2">親グループ</th>
+              <th className="text-left px-4 py-2">届出グループ</th>
               <th className="text-left px-4 py-2">追加データ</th>
               <th className="text-left px-4 py-2">状態</th>
               <th className="text-left px-4 py-2">操作</th>
@@ -170,7 +176,7 @@ export default function NotificationTypes() {
                 <td className="px-4 py-2">{d.code}</td>
                 <td className="px-4 py-2">{d.name}</td>
                 <td className="px-4 py-2">{d.description}</td>
-                <td className="px-4 py-2">{d.parentGroupId ? (parentGroupMap.get(d.parentGroupId) || '(不明)') : '-'}</td>
+                <td className="px-4 py-2">{groupMap.get(d.groupId) || '(不明)'}</td>
                 <td className="px-4 py-2">{d.requiresAdditionalData ? '必要' : '不要'}</td>
                 <td className="px-4 py-2">{d.isActive ? '有効' : '無効'}</td>
                 <td className="px-4 py-2 space-x-2">
@@ -215,15 +221,15 @@ export default function NotificationTypes() {
               <Input value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
             <div>
-              <Label>親グループID（任意）</Label>
+              <Label>届出グループ（必須）</Label>
               <select 
                 className="w-full border rounded px-3 py-2"
-                value={parentGroupId} 
-                onChange={(e) => setParentGroupId(e.target.value)}
+                value={groupId} 
+                onChange={(e) => setGroupId(e.target.value)}
               >
-                <option value="">-- なし --</option>
-                {selectableParentGroups.map(t => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
+                <option value="">-- 選択してください --</option>
+                {groups.map(g => (
+                  <option key={g.id} value={g.id}>{g.name}</option>
                 ))}
               </select>
             </div>

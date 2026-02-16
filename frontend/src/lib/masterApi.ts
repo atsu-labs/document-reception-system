@@ -1,5 +1,5 @@
 import api from './api';
-import type { Department, NotificationType, User, ApiResponse } from '../types';
+import type { Department, NotificationGroup, NotificationType, User, ApiResponse } from '../types';
 
 export async function fetchDepartments(): Promise<Department[]> {
   const res = await api.get('master/departments').json<ApiResponse<Department[]>>();
@@ -18,6 +18,26 @@ export async function updateDepartment(id: string, payload: Partial<Department>)
 
 export async function deleteDepartment(id: string) {
   const res = await api.delete(`master/departments/${id}`).json<ApiResponse<{ id: string }>>();
+  return res.data;
+}
+
+export async function fetchNotificationGroups(): Promise<NotificationGroup[]> {
+  const res = await api.get('master/notification-groups').json<ApiResponse<NotificationGroup[]>>();
+  return res.data || [];
+}
+
+export async function createNotificationGroup(payload: Partial<NotificationGroup>) {
+  const res = await api.post('master/notification-groups', { json: payload }).json<ApiResponse<NotificationGroup>>();
+  return res.data;
+}
+
+export async function updateNotificationGroup(id: string, payload: Partial<NotificationGroup>) {
+  const res = await api.put(`master/notification-groups/${id}`, { json: payload }).json<ApiResponse<NotificationGroup>>();
+  return res.data;
+}
+
+export async function deleteNotificationGroup(id: string) {
+  const res = await api.delete(`master/notification-groups/${id}`).json<ApiResponse<{ id: string }>>();
   return res.data;
 }
 
