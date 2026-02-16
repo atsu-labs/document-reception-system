@@ -12,6 +12,7 @@ import NotificationDetail from './pages/notifications/NotificationDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import Departments from './pages/admin/Departments';
+import NotificationGroups from './pages/admin/NotificationGroups';
 import NotificationTypes from './pages/admin/NotificationTypes';
 import Users from './pages/admin/Users';
 import MasterData from './pages/admin/MasterData';
@@ -75,6 +76,14 @@ function App() {
           element={
             <AdminRoute>
               <Departments />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/notification-groups"
+          element={
+            <AdminRoute>
+              <NotificationGroups />
             </AdminRoute>
           }
         />

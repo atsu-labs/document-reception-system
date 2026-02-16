@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo } from 'react';
-import { fetchNotificationGroups, fetchNotificationTypes, createNotificationType, updateNotificationType, deleteNotificationType } from '../../lib/masterApi';
-import type { NotificationGroup, NotificationType } from '../../types';
+import { useEffect, useState } from 'react';
+import { fetchNotificationGroups, createNotificationGroup, updateNotificationGroup, deleteNotificationGroup } from '../../lib/masterApi';
+import type { NotificationGroup } from '../../types';
 import { Button } from '../../components/ui/button';
 import {
   Dialog,
@@ -14,34 +14,28 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Alert, AlertDescription } from '../../components/ui/Alert';
 
-export default function NotificationTypes() {
-  const [items, setItems] = useState<NotificationType[]>([]);
-  const [groups, setGroups] = useState<NotificationGroup[]>([]);
+export default function NotificationGroups() {
+  const [items, setItems] = useState<NotificationGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<NotificationType | null>(null);
+  const [editing, setEditing] = useState<NotificationGroup | null>(null);
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [groupId, setGroupId] = useState<string>('');
-  const [requiresAdditionalData, setRequiresAdditionalData] = useState(false);
+  const [sortOrder, setSortOrder] = useState(0);
   const [isActive, setIsActive] = useState(true);
 
   async function load() {
     setLoading(true);
     setError(null);
     try {
-      const [typesRes, groupsRes] = await Promise.all([
-        fetchNotificationTypes(),
-        fetchNotificationGroups()
-      ]);
-      setItems(typesRes || []);
-      setGroups(groupsRes || []);
+      const res = await fetchNotificationGroups();
+      setItems(res || []);
     } catch (e) {
       console.error(e);
-      setError('届出種別と届出グループの取得に失敗しました');
+      setError('届出グループの取得に失敗しました');
     } finally {
       setLoading(false);
     }
@@ -51,34 +45,23 @@ export default function NotificationTypes() {
     load();
   }, []);
 
-  // グループIDから名前へのマップを作成（パフォーマンス最適化）
-  const groupMap = useMemo(() => {
-    const map = new Map<string, string>();
-    groups.forEach(group => {
-      map.set(group.id, group.name);
-    });
-    return map;
-  }, [groups]);
-
   function openCreate() {
     setEditing(null);
-    setCode(`NT${Date.now()}`);
+    setCode(`NTG${Date.now()}`);
     setName('');
     setDescription('');
-    setGroupId(groups.length > 0 ? groups[0].id : '');
-    setRequiresAdditionalData(false);
+    setSortOrder(0);
     setIsActive(true);
     setDialogOpen(true);
   }
 
-  function openEdit(t: NotificationType) {
-    setEditing(t);
-    setCode(t.code);
-    setName(t.name);
-    setDescription(t.description || '');
-    setGroupId(t.groupId);
-    setRequiresAdditionalData(t.requiresAdditionalData ?? false);
-    setIsActive(t.isActive);
+  function openEdit(g: NotificationGroup) {
+    setEditing(g);
+    setCode(g.code);
+    setName(g.name);
+    setDescription(g.description || '');
+    setSortOrder(g.sortOrder);
+    setIsActive(g.isActive);
     setDialogOpen(true);
   }
 
@@ -86,27 +69,25 @@ export default function NotificationTypes() {
     setLoading(true);
     setError(null);
     try {
-      if (!code || !name || !groupId) {
-        setError('コード、名前、届出グループは必須です');
+      if (!code || !name) {
+        setError('コードと名前は必須です');
         return;
       }
 
       if (editing) {
-        await updateNotificationType(editing.id, { 
+        await updateNotificationGroup(editing.id, { 
           code, 
           name, 
           description, 
-          groupId,
-          requiresAdditionalData,
+          sortOrder,
           isActive 
         });
       } else {
-        await createNotificationType({ 
+        await createNotificationGroup({ 
           code, 
           name, 
           description,
-          groupId,
-          requiresAdditionalData,
+          sortOrder,
           isActive 
         });
       }
@@ -122,15 +103,15 @@ export default function NotificationTypes() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('本当に削除しますか？')) return;
+    if (!confirm('本当に削除しますか？\n※このグループに属する届出種別がある場合、削除できません。')) return;
     setLoading(true);
     setError(null);
     try {
-      await deleteNotificationType(id);
+      await deleteNotificationGroup(id);
       await load();
     } catch (e) {
       console.error(e);
-      setError('削除に失敗しました');
+      setError('削除に失敗しました。このグループに属する届出種別が存在する可能性があります。');
     } finally {
       setLoading(false);
     }
@@ -138,7 +119,7 @@ export default function NotificationTypes() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl mb-4">届出種類管理</h1>
+      <h1 className="text-2xl mb-4">届出グループ管理</h1>
 
       {error && (
         <Alert variant="destructive" className="mb-4">
@@ -158,26 +139,24 @@ export default function NotificationTypes() {
               <th className="text-left px-4 py-2">コード</th>
               <th className="text-left px-4 py-2">名前</th>
               <th className="text-left px-4 py-2">説明</th>
-              <th className="text-left px-4 py-2">届出グループ</th>
-              <th className="text-left px-4 py-2">追加データ</th>
+              <th className="text-left px-4 py-2">並び順</th>
               <th className="text-left px-4 py-2">状態</th>
               <th className="text-left px-4 py-2">操作</th>
             </tr>
           </thead>
           <tbody>
-            {items.map((d) => (
-              <tr key={d.id} className="border-t">
-                <td className="px-4 py-2">{d.code}</td>
-                <td className="px-4 py-2">{d.name}</td>
-                <td className="px-4 py-2">{d.description}</td>
-                <td className="px-4 py-2">{groupMap.get(d.groupId) || '(不明)'}</td>
-                <td className="px-4 py-2">{d.requiresAdditionalData ? '必要' : '不要'}</td>
-                <td className="px-4 py-2">{d.isActive ? '有効' : '無効'}</td>
+            {items.map((g) => (
+              <tr key={g.id} className="border-t">
+                <td className="px-4 py-2">{g.code}</td>
+                <td className="px-4 py-2">{g.name}</td>
+                <td className="px-4 py-2">{g.description}</td>
+                <td className="px-4 py-2">{g.sortOrder}</td>
+                <td className="px-4 py-2">{g.isActive ? '有効' : '無効'}</td>
                 <td className="px-4 py-2 space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => openEdit(d)}>
+                  <Button variant="outline" size="sm" onClick={() => openEdit(g)}>
                     編集
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(d.id)}>
+                  <Button variant="destructive" size="sm" onClick={() => handleDelete(g.id)}>
                     削除
                   </Button>
                 </td>
@@ -185,8 +164,8 @@ export default function NotificationTypes() {
             ))}
             {items.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-sm text-muted-foreground">
-                  届出種類が見つかりません
+                <td colSpan={6} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                  届出グループが見つかりません
                 </td>
               </tr>
             )}
@@ -197,7 +176,7 @@ export default function NotificationTypes() {
       <Dialog open={dialogOpen} onOpenChange={(o) => setDialogOpen(o)}>
         <DialogContent onClose={() => setDialogOpen(false)}>
           <DialogHeader>
-            <DialogTitle>{editing ? '届出種類を編集' : '届出種類を作成'}</DialogTitle>
+            <DialogTitle>{editing ? '届出グループを編集' : '届出グループを作成'}</DialogTitle>
             <DialogDescription>コード・名前・説明を入力してください</DialogDescription>
           </DialogHeader>
 
@@ -215,30 +194,16 @@ export default function NotificationTypes() {
               <Input value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
             <div>
-              <Label>届出グループ（必須）</Label>
-              <select 
-                className="w-full border rounded px-3 py-2"
-                value={groupId} 
-                onChange={(e) => setGroupId(e.target.value)}
-              >
-                <option value="">-- 選択してください --</option>
-                {groups.map(g => (
-                  <option key={g.id} value={g.id}>{g.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <input 
-                id="nt-req-additional" 
-                type="checkbox" 
-                checked={requiresAdditionalData} 
-                onChange={(e) => setRequiresAdditionalData(e.target.checked)} 
+              <Label>並び順</Label>
+              <Input 
+                type="number" 
+                value={sortOrder} 
+                onChange={(e) => setSortOrder(parseInt(e.target.value, 10) || 0)} 
               />
-              <Label htmlFor="nt-req-additional">追加データ必要</Label>
             </div>
             <div className="flex items-center gap-2">
-              <input id="nt-active" type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
-              <Label htmlFor="nt-active">有効</Label>
+              <input id="ntg-active" type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
+              <Label htmlFor="ntg-active">有効</Label>
             </div>
           </div>
 
