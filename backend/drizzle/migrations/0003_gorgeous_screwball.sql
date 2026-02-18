@@ -1,16 +1,10 @@
 -- 証明書発行機能の追加とスキーマクリーンアップ
 
 -- Step 1: notification_typesテーブルに証明書発行の有無フィールドを追加
-ALTER TABLE notification_types ADD COLUMN `has_certificate_issue` integer DEFAULT false NOT NULL;
+ALTER TABLE notification_types ADD `has_certificate_issue` integer DEFAULT false NOT NULL;
 --> statement-breakpoint
 
--- Step 2: notificationsテーブルに証明書発行関連フィールドを追加
-ALTER TABLE notifications ADD COLUMN `certificate_issue_department_id` text REFERENCES departments(id);
---> statement-breakpoint
-ALTER TABLE notifications ADD COLUMN `certificate_issue_date` text;
---> statement-breakpoint
-
--- Step 3: notificationsテーブルから非推奨フィールドを削除（inspectionsテーブルに移行済み）
+-- Step 2: notificationsテーブルを再作成（カラムの追加と削除を同時に実行）
 -- SQLiteではカラム削除にテーブル再作成が必要
 CREATE TABLE `notifications_new` (
 	`id` text PRIMARY KEY NOT NULL,
@@ -29,12 +23,12 @@ CREATE TABLE `notifications_new` (
 	`created_at` text DEFAULT CURRENT_TIMESTAMP,
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP,
 	`updated_by` text NOT NULL,
-	FOREIGN KEY (notification_type_id) REFERENCES notification_types(id),
-	FOREIGN KEY (receiving_department_id) REFERENCES departments(id),
-	FOREIGN KEY (processing_department_id) REFERENCES departments(id),
-	FOREIGN KEY (certificate_issue_department_id) REFERENCES departments(id),
-	FOREIGN KEY (created_by) REFERENCES users(id),
-	FOREIGN KEY (updated_by) REFERENCES users(id)
+	FOREIGN KEY (`notification_type_id`) REFERENCES `notification_types`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`receiving_department_id`) REFERENCES `departments`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`processing_department_id`) REFERENCES `departments`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`certificate_issue_department_id`) REFERENCES `departments`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`updated_by`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 

@@ -60,7 +60,7 @@ async function verifyD1() {
     ];
 
     for (const table of tables) {
-      const command = `wrangler d1 execute ${dbName} ${targetFlag} --command="SELECT COUNT(*) as count FROM ${table};"`;
+      const command = `npx wrangler d1 execute ${dbName} ${targetFlag} --command="SELECT COUNT(*) as count FROM ${table};"`;
       try {
         const { stdout } = await execAsync(command);
         // NOTE: This regex parsing is fragile and may break with wrangler output format changes
@@ -77,7 +77,7 @@ async function verifyD1() {
     console.log('\n📂 部署一覧:');
     try {
       const { stdout } = await execAsync(
-        `wrangler d1 execute ${dbName} ${targetFlag} --command="SELECT code, name, is_active FROM departments ORDER BY sort_order;"`
+        `npx wrangler d1 execute ${dbName} ${targetFlag} --command="SELECT code, name, is_active FROM departments ORDER BY sort_order;"`
       );
       console.log(stdout);
     } catch (error) {
@@ -88,7 +88,7 @@ async function verifyD1() {
     console.log('👥 ユーザー一覧:');
     try {
       const { stdout } = await execAsync(
-        `wrangler d1 execute ${dbName} ${targetFlag} --command="SELECT username, display_name, role FROM users;"`
+        `npx wrangler d1 execute ${dbName} ${targetFlag} --command="SELECT username, display_name, role FROM users;"`
       );
       console.log(stdout);
     } catch (error) {
@@ -99,7 +99,7 @@ async function verifyD1() {
     console.log('📝 届出種別:');
     try {
       const { stdout } = await execAsync(
-        `wrangler d1 execute ${dbName} ${targetFlag} --command="SELECT code, name, has_inspection FROM notification_types ORDER BY sort_order;"`
+        `npx wrangler d1 execute ${dbName} ${targetFlag} --command="SELECT code, name, has_inspection FROM notification_types ORDER BY sort_order;"`
       );
       console.log(stdout);
     } catch (error) {
@@ -110,7 +110,7 @@ async function verifyD1() {
     console.log('📬 サンプル届出:');
     try {
       const { stdout } = await execAsync(
-        `wrangler d1 execute ${dbName} ${targetFlag} --command="SELECT property_name, current_status FROM notifications;"`
+        `npx wrangler d1 execute ${dbName} ${targetFlag} --command="SELECT property_name, current_status FROM notifications;"`
       );
       console.log(stdout);
     } catch (error) {

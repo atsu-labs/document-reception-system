@@ -85,6 +85,7 @@ async function resetD1() {
       "DROP TABLE IF EXISTS inspections;",
       "DROP TABLE IF EXISTS notifications;",
       "DROP TABLE IF EXISTS notification_types;",
+      "DROP TABLE IF EXISTS notification_groups;",
       "DROP TABLE IF EXISTS users;",
       "DROP TABLE IF EXISTS departments;",
       "DROP TABLE IF EXISTS workflow_templates;",
@@ -94,20 +95,20 @@ async function resetD1() {
       "PRAGMA foreign_keys = ON; PRAGMA defer_foreign_keys = OFF;";
 
     await execAsync(
-      `wrangler d1 execute ${dbName} ${targetFlag} --command="${disableForeignKeys}"`,
+      `npx wrangler d1 execute ${dbName} ${targetFlag} --command="${disableForeignKeys}"`,
     );
     await execAsync(
-      `wrangler d1 execute ${dbName} ${targetFlag} --command="${dropTables}"`,
+      `npx wrangler d1 execute ${dbName} ${targetFlag} --command="${dropTables}"`,
     );
     await execAsync(
-      `wrangler d1 execute ${dbName} ${targetFlag} --command="${enableForeignKeys}"`,
+      `npx wrangler d1 execute ${dbName} ${targetFlag} --command="${enableForeignKeys}"`,
     );
     console.log("✅ テーブルを削除しました");
     console.log("");
 
     // ステップ2: マイグレーションを再適用
     console.log("🚀 マイグレーションを適用中...");
-    const migrateCommand = `wrangler d1 migrations apply ${dbName} ${targetFlag}`;
+    const migrateCommand = `npx wrangler d1 migrations apply ${dbName} ${targetFlag}`;
     const { stdout: migrateOut, stderr: migrateErr } =
       await execAsync(migrateCommand);
 

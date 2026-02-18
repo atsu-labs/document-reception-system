@@ -48,7 +48,7 @@ async function setupD1() {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('');
     
-    const migrateCommand = `wrangler d1 migrations apply ${dbName} ${targetFlag}`;
+    const migrateCommand = `npx wrangler d1 migrations apply ${dbName} ${targetFlag}`;
     console.log(`🚀 コマンド実行: ${migrateCommand}`);
     console.log('');
 
