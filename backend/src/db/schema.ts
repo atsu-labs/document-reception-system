@@ -47,6 +47,7 @@ export const notificationTypes = sqliteTable('notification_types', {
   description: text('description'),
   groupId: text('group_id').notNull().references(() => notificationGroups.id), // 届出グループID（必須）
   hasInspection: integer('has_inspection', { mode: 'boolean' }).notNull().default(false),
+  hasCertificateIssue: integer('has_certificate_issue', { mode: 'boolean' }).notNull().default(false), // 証明書発行の有無
   hasContentField: integer('has_content_field', { mode: 'boolean' }).notNull().default(false),
   requiresAdditionalData: integer('requires_additional_data', { mode: 'boolean' }).notNull().default(false), // 追加データ要否フラグ
   workflowTemplateId: text('workflow_template_id').references(() => workflowTemplates.id),
@@ -75,8 +76,8 @@ export const notifications = sqliteTable('notifications', {
   propertyName: text('property_name'),
   content: text('content'),
   additionalData: text('additional_data'), // 追加データ（JSON形式）
-  inspectionDate: text('inspection_date'), // 後方互換性のため保持（非推奨）
-  inspectionDepartmentId: text('inspection_department_id').references(() => departments.id), // 後方互換性のため保持（非推奨）
+  certificateIssueDepartmentId: text('certificate_issue_department_id').references(() => departments.id), // 証明書発行所属
+  certificateIssueDate: text('certificate_issue_date'), // 証明書発行日付
   completionDate: text('completion_date'),
   currentStatus: text('current_status').notNull(),
   createdBy: text('created_by').notNull().references(() => users.id),

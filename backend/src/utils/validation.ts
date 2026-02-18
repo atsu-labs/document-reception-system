@@ -43,6 +43,7 @@ export const createNotificationTypeSchema = z.object({
   description: z.string().optional().nullable(),
   groupId: z.string().uuid(), // 届出グループID（必須）
   hasInspection: z.boolean().default(false),
+  hasCertificateIssue: z.boolean().default(false), // 証明書発行の有無
   hasContentField: z.boolean().default(false),
   requiresAdditionalData: z.boolean().default(false), // 追加データ要否フラグ
   workflowTemplateId: z.string().uuid().optional().nullable(),
@@ -58,8 +59,8 @@ export const createNotificationSchema = z.object({
   propertyName: z.string().optional().nullable(),
   content: z.string().optional().nullable(),
   additionalData: z.string().optional().nullable(), // 追加データ（JSON文字列）
-  inspectionDate: z.string().optional().nullable(),
-  inspectionDepartmentId: z.string().uuid().optional().nullable(),
+  certificateIssueDepartmentId: z.string().uuid().optional().nullable(), // 証明書発行所属
+  certificateIssueDate: z.string().optional().nullable(), // 証明書発行日付
   completionDate: z.string().optional().nullable(),
   currentStatus: z.string(),
 });
@@ -72,8 +73,8 @@ export const updateNotificationSchema = z.object({
   propertyName: z.string().optional().nullable(),
   content: z.string().optional().nullable(),
   additionalData: z.string().optional().nullable(), // 追加データ（JSON文字列）
-  inspectionDate: z.string().optional().nullable(),
-  inspectionDepartmentId: z.string().uuid().optional().nullable(),
+  certificateIssueDepartmentId: z.string().uuid().optional().nullable(), // 証明書発行所属
+  certificateIssueDate: z.string().optional().nullable(), // 証明書発行日付
   completionDate: z.string().optional().nullable(),
   currentStatus: z.string().optional(),
 });
