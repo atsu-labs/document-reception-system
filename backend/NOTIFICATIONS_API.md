@@ -135,11 +135,29 @@ GET /api/notifications/123e4567-e89b-12d3-a456-426614174000
   "propertyName": "物件名",
   "content": "内容",
   "currentStatus": "受付",
-  "inspectionDate": "2026-02-01",
-  "inspectionDepartmentId": "uuid",
+  "additionalData": "{\"key\":\"value\"}",
+  "certificateIssueDepartmentId": "uuid",
+  "certificateIssueDate": "2026-02-01",
   "completionDate": null
 }
 ```
+
+**フィールド説明:**
+- `notificationTypeId` (必須): 届出種別ID
+- `notificationDate` (必須): 届出日
+- `receivingDepartmentId` (必須): 受付所属ID
+- `processingDepartmentId` (必須): 処理所属ID
+- `propertyName` (任意): 物件名
+- `content` (任意): 内容
+- `currentStatus` (必須): 現在のステータス
+- `additionalData` (任意): 追加データ（JSON文字列）
+- `certificateIssueDepartmentId` (任意): 証明書発行所属ID
+- `certificateIssueDate` (任意): 証明書発行日
+- `completionDate` (任意): 完了日
+
+**注意:** 
+- 検査情報は独立した `/api/inspections` エンドポイントで管理します
+- 証明書発行情報は届出種別で `hasCertificateIssue` が `true` の場合に使用します
 
 **レスポンス:**
 ```json
@@ -171,11 +189,14 @@ GET /api/notifications/123e4567-e89b-12d3-a456-426614174000
 {
   "propertyName": "更新された物件名",
   "content": "更新された内容",
-  "inspectionDate": "2026-02-15"
+  "certificateIssueDate": "2026-02-15",
+  "certificateIssueDepartmentId": "uuid"
 }
 ```
 
 すべてのフィールドは任意です。指定されたフィールドのみが更新されます。
+
+**注意:** 検査情報は `/api/inspections` エンドポイントで管理します。
 
 **レスポンス:**
 ```json

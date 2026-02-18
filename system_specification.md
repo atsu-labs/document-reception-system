@@ -131,8 +131,11 @@
   code: string (届出コード, UNIQUE)
   name: string (届出名称)
   description: string | null
+  group_id: string (FK -> notification_groups.id, 届出グループID)
   has_inspection: boolean (検査の有無)
+  has_certificate_issue: boolean (証明書発行の有無)
   has_content_field: boolean (内容フィールドの有無)
+  requires_additional_data: boolean (追加データ要否)
   workflow_template_id: string | null (FK -> workflow_templates.id)
   is_active: boolean
   sort_order: number
@@ -164,8 +167,9 @@
   
   // 可変フィールド
   content: string | null (内容)
-  inspection_date: date | null (検査日)
-  inspection_department_id: string | null (FK -> departments.id, 検査所属)
+  additional_data: string | null (追加データ, JSON形式)
+  certificate_issue_department_id: string | null (FK -> departments.id, 証明書発行所属)
+  certificate_issue_date: date | null (証明書発行日)
   completion_date: date | null (完了日)
   
   current_status: string (現在のステータス)
@@ -177,6 +181,8 @@
   updated_by: string (FK -> users.id)
 }
 ```
+
+**注意:** 検査情報は独立した `inspections` テーブルで管理されます（詳細は後述）。
 
 #### 4.1.6 notification_history (届出履歴)
 ```typescript
