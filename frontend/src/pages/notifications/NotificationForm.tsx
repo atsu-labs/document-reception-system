@@ -57,8 +57,8 @@ export default function NotificationForm() {
       propertyName: '',
       content: '',
       additionalData: '',
-      inspectionDate: '',
-      inspectionDepartmentId: '',
+      certificateIssueDepartmentId: '',
+      certificateIssueDate: '',
       completionDate: '',
       currentStatus: '受付',
     },
@@ -81,8 +81,8 @@ export default function NotificationForm() {
         propertyName: notification.propertyName || '',
         content: notification.content || '',
         additionalData: notification.additionalData || '',
-        inspectionDate: notification.inspectionDate || '',
-        inspectionDepartmentId: notification.inspectionDepartmentId || '',
+        certificateIssueDepartmentId: notification.certificateIssueDepartmentId || '',
+        certificateIssueDate: notification.certificateIssueDate || '',
         completionDate: notification.completionDate || '',
         currentStatus: notification.currentStatus,
       });
@@ -113,8 +113,8 @@ export default function NotificationForm() {
     // Clean optional fields: send undefined/null instead of empty string for UUID/date optional fields
     const clean: NotificationCreateInput = {
       ...data,
-      inspectionDepartmentId: data.inspectionDepartmentId ? data.inspectionDepartmentId : undefined,
-      inspectionDate: data.inspectionDate ? data.inspectionDate : undefined,
+      certificateIssueDepartmentId: data.certificateIssueDepartmentId ? data.certificateIssueDepartmentId : undefined,
+      certificateIssueDate: data.certificateIssueDate ? data.certificateIssueDate : undefined,
       completionDate: data.completionDate ? data.completionDate : undefined,
       content: data.content ? data.content : undefined,
       additionalData: data.additionalData ? data.additionalData : undefined,
@@ -339,32 +339,32 @@ export default function NotificationForm() {
           </CardContent>
         </Card>
 
-        {selectedNotificationType?.hasInspection && (
+        {selectedNotificationType?.hasCertificateIssue && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>検査情報</CardTitle>
+              <CardTitle>証明書発行情報</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="inspectionDate">検査日</Label>
+                <Label htmlFor="certificateIssueDate">証明書発行日</Label>
                 <Input
-                  id="inspectionDate"
+                  id="certificateIssueDate"
                   type="date"
-                  {...register('inspectionDate')}
+                  {...register('certificateIssueDate')}
                   disabled={isSubmitting}
                 />
-                {errors.inspectionDate && (
+                {errors.certificateIssueDate && (
                   <p className="text-sm text-red-500 mt-1">
-                    {errors.inspectionDate.message}
+                    {errors.certificateIssueDate.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="inspectionDepartmentId">検査所属</Label>
+                <Label htmlFor="certificateIssueDepartmentId">証明書発行所属</Label>
                 <Select
-                  id="inspectionDepartmentId"
-                  {...register('inspectionDepartmentId')}
+                  id="certificateIssueDepartmentId"
+                  {...register('certificateIssueDepartmentId')}
                   disabled={isSubmitting}
                 >
                   <option value="">選択してください</option>
@@ -374,13 +374,22 @@ export default function NotificationForm() {
                     </option>
                   ))}
                 </Select>
-                {errors.inspectionDepartmentId && (
+                {errors.certificateIssueDepartmentId && (
                   <p className="text-sm text-red-500 mt-1">
-                    {errors.inspectionDepartmentId.message}
+                    {errors.certificateIssueDepartmentId.message}
                   </p>
                 )}
               </div>
             </CardContent>
+          </Card>
+        )}
+
+        {selectedNotificationType?.hasInspection && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>検査情報</CardTitle>
+              <p className="text-sm text-muted-foreground">検査情報は届出詳細画面の「検査管理」タブで管理します</p>
+            </CardHeader>
           </Card>
         )}
 

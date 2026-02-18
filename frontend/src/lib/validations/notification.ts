@@ -21,8 +21,8 @@ export const notificationCreateSchema = z.object({
   }, {
     message: '有効なJSON形式で入力してください',
   }),
-  inspectionDate: z.string().optional(),
-  inspectionDepartmentId: z.string().optional(),
+  certificateIssueDepartmentId: z.string().optional(),
+  certificateIssueDate: z.string().optional(),
   completionDate: z.string().optional(),
   currentStatus: z.string().min(1, 'ステータスを入力してください'),
 });
@@ -50,8 +50,8 @@ export const notificationUpdateSchema = z.object({
   }, {
     message: '有効なJSON形式で入力してください',
   }),
-  inspectionDate: z.string().optional(),
-  inspectionDepartmentId: z.string().optional(),
+  certificateIssueDepartmentId: z.string().optional(),
+  certificateIssueDate: z.string().optional(),
   completionDate: z.string().optional(),
   currentStatus: z.string().optional(),
 });

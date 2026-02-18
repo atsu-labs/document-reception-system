@@ -42,6 +42,7 @@ export interface NotificationType {
   description?: string | null;
   groupId: string; // 届出グループID（必須）
   hasInspection: boolean;
+  hasCertificateIssue: boolean; // 証明書発行の有無
   hasContentField: boolean;
   requiresAdditionalData: boolean;
   workflowTemplateId?: string | null;
@@ -60,8 +61,8 @@ export interface Notification {
   propertyName?: string | null;
   content?: string | null;
   additionalData?: string | null;
-  inspectionDate?: string | null;
-  inspectionDepartmentId?: string | null;
+  certificateIssueDepartmentId?: string | null; // 証明書発行所属
+  certificateIssueDate?: string | null; // 証明書発行日付
   completionDate?: string | null;
   currentStatus: string;
   createdBy: string;
