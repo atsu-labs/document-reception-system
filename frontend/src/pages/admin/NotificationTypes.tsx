@@ -26,6 +26,8 @@ export default function NotificationTypes() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [groupId, setGroupId] = useState<string>('');
+  const [hasInspection, setHasInspection] = useState(false);
+  const [hasCertificateIssue, setHasCertificateIssue] = useState(false);
   const [requiresAdditionalData, setRequiresAdditionalData] = useState(false);
   const [isActive, setIsActive] = useState(true);
 
@@ -67,6 +69,8 @@ export default function NotificationTypes() {
     setDescription('');
     // グループが存在する場合のみデフォルト値を設定
     setGroupId(groups.length > 0 ? groups[0].id : '');
+    setHasInspection(false);
+    setHasCertificateIssue(false);
     setRequiresAdditionalData(false);
     setIsActive(true);
     // グループが存在しない場合はエラーメッセージを表示
@@ -83,6 +87,8 @@ export default function NotificationTypes() {
     setName(t.name);
     setDescription(t.description || '');
     setGroupId(t.groupId);
+    setHasInspection(t.hasInspection ?? false);
+    setHasCertificateIssue(t.hasCertificateIssue ?? false);
     setRequiresAdditionalData(t.requiresAdditionalData ?? false);
     setIsActive(t.isActive);
     setDialogOpen(true);
@@ -103,6 +109,8 @@ export default function NotificationTypes() {
           name, 
           description, 
           groupId,
+          hasInspection,
+          hasCertificateIssue,
           requiresAdditionalData,
           isActive 
         });
@@ -112,6 +120,8 @@ export default function NotificationTypes() {
           name, 
           description,
           groupId,
+          hasInspection,
+          hasCertificateIssue,
           requiresAdditionalData,
           isActive 
         });
@@ -165,6 +175,8 @@ export default function NotificationTypes() {
               <th className="text-left px-4 py-2">名前</th>
               <th className="text-left px-4 py-2">説明</th>
               <th className="text-left px-4 py-2">届出グループ</th>
+              <th className="text-left px-4 py-2">検査</th>
+              <th className="text-left px-4 py-2">証明書</th>
               <th className="text-left px-4 py-2">追加データ</th>
               <th className="text-left px-4 py-2">状態</th>
               <th className="text-left px-4 py-2">操作</th>
@@ -177,6 +189,8 @@ export default function NotificationTypes() {
                 <td className="px-4 py-2">{d.name}</td>
                 <td className="px-4 py-2">{d.description}</td>
                 <td className="px-4 py-2">{groupMap.get(d.groupId) || '(不明)'}</td>
+                <td className="px-4 py-2">{d.hasInspection ? '有' : '無'}</td>
+                <td className="px-4 py-2">{d.hasCertificateIssue ? '有' : '無'}</td>
                 <td className="px-4 py-2">{d.requiresAdditionalData ? '必要' : '不要'}</td>
                 <td className="px-4 py-2">{d.isActive ? '有効' : '無効'}</td>
                 <td className="px-4 py-2 space-x-2">
@@ -191,7 +205,7 @@ export default function NotificationTypes() {
             ))}
             {items.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                <td colSpan={9} className="px-4 py-6 text-center text-sm text-muted-foreground">
                   届出種類が見つかりません
                 </td>
               </tr>
@@ -232,6 +246,24 @@ export default function NotificationTypes() {
                   <option key={g.id} value={g.id}>{g.name}</option>
                 ))}
               </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <input 
+                id="nt-has-inspection" 
+                type="checkbox" 
+                checked={hasInspection} 
+                onChange={(e) => setHasInspection(e.target.checked)} 
+              />
+              <Label htmlFor="nt-has-inspection">検査の有無</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <input 
+                id="nt-has-certificate" 
+                type="checkbox" 
+                checked={hasCertificateIssue} 
+                onChange={(e) => setHasCertificateIssue(e.target.checked)} 
+              />
+              <Label htmlFor="nt-has-certificate">証明書発行の有無</Label>
             </div>
             <div className="flex items-center gap-2">
               <input 

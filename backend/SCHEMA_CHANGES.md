@@ -357,3 +357,170 @@ WHERE inspection_date IS NOT NULL
 - [検査API ドキュメント](./INSPECTIONS_API.md)
 - [届出API ドキュメント](./NOTIFICATIONS_API.md)
 - [データベーススキーマ](./src/db/schema.ts)
+
+---
+
+## 変更履歴: 証明書発行機能の追加とスキーマクリーンアップ
+
+**変更日:** 2026-02-18
+
+### 変更内容の要約
+
+1. **証明書発行機能の追加**: 届出データに証明書発行の所属と日付を追加し、届出種別マスタに証明書発行の有無チェック項目を追加
+2. **不要フィールドの削除**: 届出テーブルから非推奨の検査関連フィールド（`inspection_date`, `inspection_department_id`）を削除
+
+### 詳細な変更内容
+
+#### 1. notification_types テーブルへの追加
+
+**追加されたカラム:**
+
+| カラム名 | データ型 | NULL許可 | デフォルト値 | 説明 |
+|---------|---------|---------|------------|------|
+| has_certificate_issue | integer (boolean) | NO | 0 (false) | 証明書発行の有無。trueの場合、この種別の届出は証明書発行情報を持つことができる |
+
+**使用例:**
+
+```sql
+-- 証明書発行が必要な届出種別を作成
+INSERT INTO notification_types (
+  id, code, name, description,
+  group_id, has_inspection, has_certificate_issue, has_content_field,
+  requires_additional_data, workflow_template_id, is_active, sort_order
+) VALUES (
+  'type-id', 'NT001', '建築確認申請', '建築確認に関する届出',
+  'group-id', 1, 1, 1,
+  1, 'workflow-id', 1, 1
+);
+```
+
+#### 2. notifications テーブルの変更
+
+**追加されたカラム:**
+
+| カラム名 | データ型 | NULL許可 | デフォルト値 | 説明 |
+|---------|---------|---------|------------|------|
+| certificate_issue_department_id | text | YES | NULL | 証明書発行所属ID（外部キー: departments.id） |
+| certificate_issue_date | text | YES | NULL | 証明書発行日付（ISO日付形式） |
+
+**削除されたカラム:**
+
+| カラム名 | 理由 |
+|---------|------|
+| inspection_date | 検査情報は独立した inspections テーブルで管理するため非推奨 |
+| inspection_department_id | 検査情報は独立した inspections テーブルで管理するため非推奨 |
+
+**使用例:**
+
+```sql
+-- 証明書発行情報を含む届出を作成
+INSERT INTO notifications (
+  id, notification_type_id, notification_date,
+  receiving_department_id, processing_department_id,
+  property_name, content, additional_data,
+  certificate_issue_department_id, certificate_issue_date,
+  current_status, created_by, updated_by
+) VALUES (
+  'notification-id', 'type-id', '2026-02-18',
+  'dept-id-1', 'dept-id-2',
+  '物件名', '届出内容', NULL,
+  'cert-dept-id', '2026-02-20',
+  '受付', 'user-id', 'user-id'
+);
+```
+
+### マイグレーション
+
+**マイグレーションファイル:**
+- `backend/drizzle/migrations/0003_add_certificate_issue_fields.sql`
+
+**マイグレーション内容:**
+
+```sql
+-- 届出種別テーブルに証明書発行の有無フィールドを追加
+ALTER TABLE notification_types ADD COLUMN `has_certificate_issue` integer DEFAULT false NOT NULL;
+
+-- 届出テーブルに証明書発行関連フィールドを追加
+ALTER TABLE notifications ADD COLUMN `certificate_issue_department_id` text REFERENCES departments(id);
+ALTER TABLE notifications ADD COLUMN `certificate_issue_date` text;
+
+-- 届出テーブルから非推奨フィールドを削除（テーブル再作成が必要）
+-- inspection_date と inspection_department_id を削除
+```
+
+**マイグレーション実行方法:**
+
+```bash
+# Drizzle Kitを使用してマイグレーションを実行
+cd backend
+npm run db:push
+
+# D1環境（Cloudflare Workers）の場合
+wrangler d1 migrations apply document-reception-system --local  # ローカル環境
+wrangler d1 migrations apply document-reception-system --remote # 本番環境
+```
+
+### API変更
+
+**届出種別の作成・更新 (POST/PUT /api/master/notification-types):**
+
+```json
+{
+  "code": "NT001",
+  "name": "建築確認申請",
+  "description": "建築確認に関する届出",
+  "groupId": "group-id",
+  "hasInspection": true,
+  "hasCertificateIssue": true,
+  "hasContentField": true,
+  "requiresAdditionalData": true,
+  "workflowTemplateId": "workflow-id",
+  "sortOrder": 1
+}
+```
+
+**届出の作成・更新 (POST/PUT /api/notifications):**
+
+```json
+{
+  "notificationTypeId": "type-id",
+  "notificationDate": "2026-02-18",
+  "receivingDepartmentId": "dept-id-1",
+  "processingDepartmentId": "dept-id-2",
+  "propertyName": "物件名",
+  "content": "届出内容",
+  "additionalData": null,
+  "certificateIssueDepartmentId": "cert-dept-id",
+  "certificateIssueDate": "2026-02-20",
+  "currentStatus": "受付"
+}
+```
+
+**注意:** `inspectionDate` と `inspectionDepartmentId` フィールドは削除されました。検査情報は `/api/inspections` エンドポイントで管理してください。
+
+### データ移行ガイドライン
+
+既存データの扱い：
+
+1. **届出種別**: 既存の届出種別は引き続き動作します。`has_certificate_issue` のデフォルト値は `false` です。
+2. **届出**: 既存の届出は引き続き動作します。`inspection_date` と `inspection_department_id` フィールドは削除されました。
+
+### ベストプラクティス
+
+#### 1. 証明書発行情報の管理
+
+- 届出種別で `hasCertificateIssue` が `true` の場合のみ、証明書発行情報を入力します
+- 証明書発行日と証明書発行所属は両方とも入力するか、両方とも空にします
+
+#### 2. 検査情報の管理
+
+- 検査情報は独立した `inspections` テーブルで管理します
+- 1つの届出に対して複数の検査を作成できます
+- 詳細は [検査API ドキュメント](./INSPECTIONS_API.md) を参照してください
+
+### 改訂履歴
+
+| バージョン | 日付 | 変更内容 | 作成者 |
+|-----------|------|----------|--------|
+| 1.0 | 2026-02-02 | 初版作成 | - |
+| 1.1 | 2026-02-18 | 証明書発行機能の追加と不要フィールドの削除 | - |

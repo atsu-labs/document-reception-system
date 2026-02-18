@@ -54,7 +54,7 @@ async function seedD1() {
     // wranglerコマンドで投入
     const dbName = 'document-reception-system';
     const targetFlag = isRemote ? '--remote' : '--local';
-    const command = `wrangler d1 execute ${dbName} ${targetFlag} --file=./seed-export.sql`;
+    const command = `npx wrangler d1 execute ${dbName} ${targetFlag} --file=./seed-export.sql`;
     
     console.log(`🚀 コマンド実行: ${command}`);
     console.log('');

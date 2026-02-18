@@ -243,6 +243,22 @@ export default function NotificationDetail() {
                 <StatusBadge status={notification.currentStatus} />
               </div>
             </div>
+            <div>
+              <Label>証明書発行所属</Label>
+              <div className="mt-1">
+                {notification.certificateIssueDepartmentId
+                  ? departmentMap[notification.certificateIssueDepartmentId] || notification.certificateIssueDepartmentId
+                  : '-'}
+              </div>
+            </div>
+            <div>
+              <Label>証明書発行日</Label>
+              <div className="mt-1">
+                {notification.certificateIssueDate
+                  ? format(new Date(notification.certificateIssueDate), 'yyyy年MM月dd日')
+                  : '-'}
+              </div>
+            </div>
           </div>
 
           {notificationType?.hasContentField && notification.content && (
